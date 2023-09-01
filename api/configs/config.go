@@ -8,35 +8,23 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type ConfigParser struct {
-	EnvFile string
-}
-
-func NewConfigParser(envFile string) (*ConfigParser) {
-	return &ConfigParser{
-		EnvFile: envFile,
-	}
-}
-
-func (cp *ConfigParser) LoadEnv() (error) {
-	err :=  godotenv.Load(cp.EnvFile)
+func LoadEnv(file string) error {
+	err := godotenv.Load(file)
 	if err != nil {
-		return fmt.Errorf("loading %s: %w", cp.EnvFile, err)
+		return fmt.Errorf("loading %s: %w", file, err)
 	}
 	return nil
 }
 
-
-func (cp *ConfigParser) GetStringEnv(key string) (string, error) {
-	val, ok :=  os.LookupEnv(key)
+func GetStringEnv(key string) (string, error) {
+	val, ok := os.LookupEnv(key)
 	if !ok {
 		return "", fmt.Errorf("env does not exist: %s", key)
 	}
 	return val, nil
 }
 
-
-func (cp *ConfigParser) GetIntEnv(key string) (int64, error) {
+func GetIntEnv(key string) (int64, error) {
 	val, ok := os.LookupEnv(key)
 	if !ok {
 		return 0, fmt.Errorf("env does not exist: %s", key)
@@ -48,7 +36,19 @@ func (cp *ConfigParser) GetIntEnv(key string) (int64, error) {
 	return parsedVal, nil
 }
 
-func (cp *ConfigParser) GetBoolEnv(key string) (bool, error) {
+func GetGoEnv() string {
+	goEnv := os.Getenv("GO_ENV")
+	switch goEnv {
+	case "production":
+		return "production"
+	case "development":
+		return "development"
+	default:
+		return "development"
+	}
+}
+
+func GetBoolEnv(key string) (bool, error) {
 	val, ok := os.LookupEnv(key)
 	if !ok {
 		return false, fmt.Errorf("env does not exist: %s", key)

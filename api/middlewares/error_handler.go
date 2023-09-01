@@ -2,12 +2,12 @@ package middlewares
 
 import (
 	"errors"
+	"github.com/putto11262002/expense-tracker/api/utils"
 
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/putto11262002/expense-tracker/api/internal/utils"
 )
 
 // Assume there will only be one error in the list

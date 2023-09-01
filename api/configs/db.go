@@ -2,8 +2,8 @@ package configs
 
 import (
 	"fmt"
+	"github.com/putto11262002/expense-tracker/api/domains"
 
-	"github.com/putto11262002/expense-tracker/api/internal/domains"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -16,37 +16,35 @@ type DBConfig struct {
 	Database string
 }
 
-func formatError(err error) (error){
+func formatError(err error) error {
 	return fmt.Errorf("loading db config: %w", err)
 }
 
-func NewDBConfig(cp *ConfigParser)(*DBConfig, error) {
-	
+func loadDBConfig() (*DBConfig, error) {
 
-	username, err := cp.GetStringEnv("DB_USERNAME")
+	username, err := GetStringEnv("DB_USERNAME")
 	if err != nil {
 		return nil, formatError(err)
 	}
 
-	password, err := cp.GetStringEnv("DB_PASSWORD")
+	password, err := GetStringEnv("DB_PASSWORD")
 	if err != nil {
 		return nil, formatError(err)
 	}
 
-	host, err := cp.GetStringEnv("DB_HOST")
-	if err != nil {
-		return nil , formatError(err)
-	}
-
-	port, err := cp.GetIntEnv("DB_PORT")
+	host, err := GetStringEnv("DB_HOST")
 	if err != nil {
 		return nil, formatError(err)
 	}
 
-
-	database, err := cp.GetStringEnv("DB_NAME")
+	port, err := GetIntEnv("DB_PORT")
 	if err != nil {
-		return nil , formatError(err)
+		return nil, formatError(err)
+	}
+
+	database, err := GetStringEnv("DB_NAME")
+	if err != nil {
+		return nil, formatError(err)
 	}
 
 	return &DBConfig{
@@ -58,8 +56,12 @@ func NewDBConfig(cp *ConfigParser)(*DBConfig, error) {
 	}, nil
 }
 
-func ConnectDB(config DBConfig) (*gorm.DB, error) {
-	dns := fmt.Sprintf(`%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local`,
+func ConnectDB() (*gorm.DB, error) {
+	config, err := loadDBConfig()
+	if err != nil {
+		return nil, err
+	}
+	dns := fmt.Sprintf(`%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=UTC`,
 		config.Username,
 		config.Password,
 		config.Host,
