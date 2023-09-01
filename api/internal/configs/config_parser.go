@@ -30,7 +30,7 @@ func (cp *ConfigParser) LoadEnv() (error) {
 func (cp *ConfigParser) GetStringEnv(key string) (string, error) {
 	val, ok :=  os.LookupEnv(key)
 	if !ok {
-		return "", fmt.Errorf("env with does not exist: %s", key)
+		return "", fmt.Errorf("env does not exist: %s", key)
 	}
 	return val, nil
 }
@@ -39,7 +39,7 @@ func (cp *ConfigParser) GetStringEnv(key string) (string, error) {
 func (cp *ConfigParser) GetIntEnv(key string) (int64, error) {
 	val, ok := os.LookupEnv(key)
 	if !ok {
-		return 0, fmt.Errorf("env with does not exist: %s", key)
+		return 0, fmt.Errorf("env does not exist: %s", key)
 	}
 	parsedVal, err := strconv.ParseInt(val, 10, 64)
 	if err != nil {
@@ -51,7 +51,7 @@ func (cp *ConfigParser) GetIntEnv(key string) (int64, error) {
 func (cp *ConfigParser) GetBoolEnv(key string) (bool, error) {
 	val, ok := os.LookupEnv(key)
 	if !ok {
-		return false, fmt.Errorf("env with does not exist: %s", key)
+		return false, fmt.Errorf("env does not exist: %s", key)
 	}
 	parsedVal, err := strconv.ParseBool(val)
 	if err != nil {
