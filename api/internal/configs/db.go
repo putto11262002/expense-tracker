@@ -3,9 +3,9 @@ package configs
 import (
 	"fmt"
 
+	"github.com/putto11262002/expense-tracker/api/internal/domains"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 type DBConfig struct {
@@ -66,10 +66,10 @@ func ConnectDB(config DBConfig) (*gorm.DB, error) {
 		config.Port,
 		config.Database)
 
-	dbLogger := logger.Default.LogMode(logger.Silent)
+	// dbLogger := logger.Default.LogMode(logger.Silent)
 
 	db, err := gorm.Open(mysql.Open(dns), &gorm.Config{
-		Logger: dbLogger,
+		// Logger: dbLogger,
 	})
 
 	if err != nil {
@@ -77,4 +77,11 @@ func ConnectDB(config DBConfig) (*gorm.DB, error) {
 	}
 
 	return db, nil
+}
+
+func AutoMigrate(db *gorm.DB) error {
+	if err := db.AutoMigrate(&domains.User{}); err != nil {
+		return fmt.Errorf("auto migration: %w", err)
+	}
+	return nil
 }

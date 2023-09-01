@@ -6,59 +6,67 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserRepsotory struct {
+type UserRepository struct {
 	DB *gorm.DB
 }
 
-func NewUserRepository(DB *gorm.DB) *UserRepsotory {
-	return &UserRepsotory{
+func NewUserRepository(DB *gorm.DB) *UserRepository {
+	return &UserRepository{
 		DB: DB,
 	}
 }
 
-
-type IUserRepsotory interface {
+type IUserRepository interface {
 	CreateUser(*domains.User) (*domains.User, error)
-	DeleteUserByID(uuid.UUID) (error)
+	DeleteUserByID(uuid.UUID) error
 	GetUserByID(uuid.UUID) (*domains.User, error)
-	GetUserByUsername(uuid.UUID) (*domains.User, error)
-	GetUserByEmail(uuid.UUID) (*domains.User, error)
+	GetUserByUsername(string) (*domains.User, error)
+	GetUserByEmail(string) (*domains.User, error)
 	UpdateUser(*domains.User) (*domains.User, error)
+	ExistByUsername(string)(bool, error)
+	ExistByEmail(string)(bool, error)
 }
 
+func (r *UserRepository) CreateUser(user *domains.User) (*domains.User, error) {
+	result := r.DB.Create(user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return user, nil
+}
 
-func (r *UserRepsotory) CreateUser(user *domains.User) (*domains.User, error){
-	return nil, nil
-} 
-
-
-func (r *UserRepsotory) DeleteUserByID(id uuid.UUID) (error) {
+func (r *UserRepository) DeleteUserByID(id uuid.UUID) error {
 	return nil
 }
 
-func (r *UserRepsotory) GetUserByID(id uuid.UUID) (*domains.User, error){
+func (r *UserRepository) GetUserByID(id uuid.UUID) (*domains.User, error) {
 	return nil, nil
 }
 
-func (r *UserRepsotory) GetUserByUsername(id string) (*domains.User, error){
+func (r *UserRepository) GetUserByUsername(username string) (*domains.User, error) {
 	return nil, nil
 }
 
-func (r *UserRepsotory) GetUserByEmail(id string) ( *domains.User, error){
+func (r *UserRepository) GetUserByEmail(email string) (*domains.User, error) {
 	return nil, nil
 }
 
-func (r *UserRepsotory) UpdateUser(*domains.User) (*domains.User, error){
+func (r *UserRepository) UpdateUser(user *domains.User) (*domains.User, error) {
 	return nil, nil
 }
 
+func (r *UserRepository) ExistByUsername(username string)(bool, error){
+	var count int64
+	if err := r.DB.Model(&domains.User{}).Where("username = ?", username).Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
 
-
-
-
-
-
-
-
-
-
+func (r * UserRepository) ExistByEmail(email string)(bool, error){
+	var count int64
+	if err := r.DB.Model(&domains.User{}).Where("email = ?", email).Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}

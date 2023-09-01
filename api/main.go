@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+
 	"github.com/gin-gonic/gin"
 	"github.com/putto11262002/expense-tracker/api/internal/configs"
+	"github.com/putto11262002/expense-tracker/api/internal/middlewares"
 	"github.com/putto11262002/expense-tracker/api/internal/routes"
 )
 
@@ -25,6 +27,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	if err := configs.AutoMigrate(db); err != nil {
+		log.Fatal(err)
+	}
+
 	// loading PORT from environment
 	port, err := cp.GetIntEnv("PORT")
 	if err != nil {
@@ -32,6 +38,8 @@ func main() {
 	}
 
 	r := gin.Default()
+
+	r.Use(middlewares.GlobalErrorHandler())
 
 	routes.NewUserRoutes(db, r)
 
