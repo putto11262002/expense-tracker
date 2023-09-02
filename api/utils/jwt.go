@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/putto11262002/expense-tracker/api/configs"
 	"github.com/putto11262002/expense-tracker/api/domains"
 	"log"
@@ -33,4 +34,34 @@ func GenerateJWTToken(user *domains.User, secret string) (string, time.Duration,
 		return "", 0, err
 	}
 	return ss, maxAge, nil
+}
+
+func ValidateToken(tokenStr, secret string) (*jwt.StandardClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %s", token.Header["alg"])
+		}
+
+		return []byte(secret), nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("parsing token: %w", err)
+	}
+
+	claims, ok := token.Claims.(*jwt.StandardClaims)
+	if !ok && !token.Valid {
+		return nil, &AuthorizationError{
+			Message: "invalid token",
+		}
+	}
+
+	// check if token has expired
+	if err := claims.Valid(); err != nil {
+		return nil, &AuthorizationError{
+			Message: "invalid token",
+		}
+	}
+
+	return claims, nil
+
 }

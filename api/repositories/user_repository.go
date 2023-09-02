@@ -42,7 +42,12 @@ func (r *UserRepository) DeleteUserByID(id uuid.UUID) error {
 }
 
 func (r *UserRepository) GetUserByID(id uuid.UUID) (*domains.User, error) {
-	return nil, nil
+	var user domains.User
+	err := r.DB.Where("id = ?", id).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
 
 func (r *UserRepository) GetUserByUsername(username string) (*domains.User, error) {

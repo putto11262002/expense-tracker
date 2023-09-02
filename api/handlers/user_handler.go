@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/putto11262002/expense-tracker/api/configs"
 	"github.com/putto11262002/expense-tracker/api/domains"
 	"github.com/putto11262002/expense-tracker/api/services"
@@ -9,9 +11,6 @@ import (
 	"log"
 	"math"
 	"net/http"
-	"time"
-
-	"github.com/gin-gonic/gin"
 )
 
 type UserHandler struct {
@@ -33,6 +32,7 @@ type RegisterRequestBody struct {
 }
 
 type UserResponse struct {
+	ID        string `json:"id"`
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
 	Username  string `json:"username"`
@@ -59,7 +59,12 @@ func NewLoginResponse(result *services.UserLoginResult) *LoginResponse {
 }
 
 func NewUserResponse(user *domains.User) *UserResponse {
+	if user == nil {
+		return &UserResponse{}
+	}
+
 	return &UserResponse{
+		ID:        user.ID.String(),
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Username:  user.Username,
@@ -76,8 +81,6 @@ func (h *UserHandler) HandleRegister(ctx *gin.Context) {
 		utils.AbortWithError(ctx, fmt.Errorf("parsing register request body: %w", err))
 		return
 	}
-
-	time.Now().Format("")
 
 	user, err := h.service.Register(services.NewUserRegisterInput(
 		userReqBody.FirstName,
@@ -130,5 +133,18 @@ func (h *UserHandler) HandleLogin(ctx *gin.Context) {
 }
 
 func (h *UserHandler) HandleGetUserByID(ctx *gin.Context) {
-
+	idStr := ctx.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		utils.AbortWithError(ctx, &utils.InvalidArgumentError{
+			Message: "invalid id",
+		})
+		return
+	}
+	user, err := h.service.GetUserByID(id)
+	if err != nil {
+		utils.AbortWithError(ctx, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, NewUserResponse(user))
 }

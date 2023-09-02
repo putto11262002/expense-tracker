@@ -6,6 +6,7 @@ import (
 	"github.com/putto11262002/expense-tracker/api/domains"
 	"github.com/putto11262002/expense-tracker/api/repositories"
 	utils2 "github.com/putto11262002/expense-tracker/api/utils"
+	"gorm.io/gorm"
 	"time"
 
 	"github.com/google/uuid"
@@ -114,14 +115,15 @@ func (s *UserService) Register(input *UserRegisterInput) (*domains.User, error) 
 
 func (s *UserService) Login(input *UserLoginInput) (*UserLoginResult, error) {
 	user, err := s.repository.GetUserByUsernameOrEmail(input.Key, input.Key)
-	if err != nil {
-		return nil, fmt.Errorf("checking if user exist before login: %w", err)
-	}
 
-	if user == nil {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, &utils2.AuthorizationError{
 			Message: "invalid credentials",
 		}
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("checking if user exist before login: %w", err)
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Secret))
@@ -152,7 +154,15 @@ func (s *UserService) GetUserByEmail(email string) (*domains.User, error) {
 }
 
 func (s *UserService) GetUserByID(id uuid.UUID) (*domains.User, error) {
-	return nil, nil
+	user, err := s.repository.GetUserByID(id)
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return user, nil
+		}
+		return nil, fmt.Errorf("getting user by id: %w", err)
+	}
+	return user, nil
 }
 
 func (s *UserService) GetUserByUsername(username string) (*domains.User, error) {

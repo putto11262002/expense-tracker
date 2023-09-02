@@ -37,6 +37,7 @@ func main() {
 	r.Use(middlewares.GlobalErrorHandler())
 
 	routes.NewUserRoutes(db, r)
+	routes.NewAuthRoutes(db, r)
 
 	err = r.Run(fmt.Sprintf(":%d", port))
 	if err != nil {
