@@ -20,20 +20,24 @@ func NewUserRoutes(db *gorm.DB, r *gin.Engine) {
 
 	userRg.Use(middlewares.JWTAuthMiddleware())
 
-	userRg.GET("/me", func(ctx *gin.Context) {
-		val, exist := ctx.Get("claims")
-		if !exist {
-			utils.AbortWithError(ctx, &utils.AuthorizationError{})
-			return
-		}
-		if claims, ok := val.(*jwt.StandardClaims); !ok {
-			utils.AbortWithError(ctx, &utils.AuthorizationError{})
-			return
-		} else {
-			ctx.AddParam("id", claims.Subject)
-			ctx.Next()
-		}
+	userRg.GET("/me",
+		// retrieve user id from claims and set it as path param
+		func(ctx *gin.Context) {
+			val, exist := ctx.Get("claims")
+			if !exist {
+				utils.AbortWithError(ctx, &utils.AuthorizationError{})
+				return
+			}
+			if claims, ok := val.(*jwt.StandardClaims); !ok {
+				utils.AbortWithError(ctx, &utils.AuthorizationError{})
+				return
+			} else {
+				ctx.AddParam("id", claims.Subject)
+				ctx.Next()
+			}
 
-	}, userHandler.HandleGetUserByID)
+		}, userHandler.HandleGetUserByID)
+
+	userRg.GET("/:id", userHandler.HandleGetUserByID)
 
 }
