@@ -3,3 +3,6 @@ bin/
 
 # ignore .env
 .env
+
+
+.idea/

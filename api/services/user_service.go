@@ -54,6 +54,11 @@ func NewUserLoginInput(key, secret string) *UserLoginInput {
 }
 
 type UserUpdateInput struct {
+	ID        string
+	Username  string
+	Email     string
+	FirstName string
+	LastName  string
 }
 
 type UserLoginResult struct {
@@ -70,13 +75,26 @@ func NewLoginResult(user *domains.User, token string, maxAge time.Duration) *Use
 	}
 }
 
+// IUserService is an interface for managing user-related operations in the application.
 type IUserService interface {
-	Register(*UserRegisterInput) (*domains.User, error)
-	Login(*UserLoginInput) (*UserLoginResult, error)
-	UpdateUser(*UserUpdateInput) (*domains.User, error)
-	GetUserByEmail(string) (*domains.User, error)
-	GetUserByID(uuid.UUID) (*domains.User, error)
-	GetUserByUsername(string) (*domains.User, error)
+	// Register registers a new user with the provided registration input.
+	Register(input *UserRegisterInput) (*domains.User, error)
+
+	// Login performs user authentication with the provided login input.
+	// It returns a result containing user information upon successful login.
+	Login(input *UserLoginInput) (*UserLoginResult, error)
+
+	// UpdateUser updates user information based on the provided input.
+	UpdateUser(input *UserUpdateInput) (*domains.User, error)
+
+	// GetUserByEmail retrieves a user by their email address.
+	GetUserByEmail(email string) (*domains.User, error)
+
+	// GetUserByID retrieves a user by their unique identifier (ID).
+	GetUserByID(userID uuid.UUID) (*domains.User, error)
+
+	// GetUserByUsername retrieves a user by their username.
+	GetUserByUsername(username string) (*domains.User, error)
 }
 
 func (s *UserService) Register(input *UserRegisterInput) (*domains.User, error) {

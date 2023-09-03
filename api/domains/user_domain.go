@@ -7,7 +7,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// user struct
 type User struct {
 	ID        uuid.UUID `gorm:"type:char(36);primary_key"`
 	FirstName string
@@ -19,8 +18,6 @@ type User struct {
 	UpdatedAt time.Time `gorm:"autoUpdateTime"`
 }
 
-// TODO - hash password
-// constructor for users
 func NewUser(firstName, lastName, username, email, password string) *User {
 	return &User{
 		FirstName: firstName,

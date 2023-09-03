@@ -38,6 +38,7 @@ func main() {
 
 	routes.NewUserRoutes(db, r)
 	routes.NewAuthRoutes(db, r)
+	routes.NewGroupRoutes(db, r)
 
 	err = r.Run(fmt.Sprintf(":%d", port))
 	if err != nil {

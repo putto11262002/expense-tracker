@@ -11,6 +11,7 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"time"
 )
 
 type UserHandler struct {
@@ -32,13 +33,13 @@ type RegisterRequestBody struct {
 }
 
 type UserResponse struct {
-	ID        string `json:"id"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Username  string `json:"username"`
-	Email     string `json:"email"`
-	CreatedAt string `json:"createdAt"`
-	UpdatedAt string `json:"updatedAt"`
+	ID        string    `json:"id"`
+	FirstName string    `json:"firstName"`
+	LastName  string    `json:"lastName"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type UserLoginRequest struct {
@@ -49,6 +50,14 @@ type UserLoginRequest struct {
 type LoginResponse struct {
 	Token string        `json:"token"`
 	User  *UserResponse `json:"user"`
+}
+
+type UpdateUserRequestBody struct {
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Email     string `json:"email"`
+	Username  string `json:"username"`
+	Password  string `json:"password"`
 }
 
 func NewLoginResponse(result *services.UserLoginResult) *LoginResponse {
@@ -69,8 +78,8 @@ func NewUserResponse(user *domains.User) *UserResponse {
 		LastName:  user.LastName,
 		Username:  user.Username,
 		Email:     user.Email,
-		CreatedAt: user.CreatedAt.String(),
-		UpdatedAt: user.UpdatedAt.String(),
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}
 }
 
