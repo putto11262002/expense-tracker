@@ -36,4 +36,5 @@ func NewGroupRoutes(db *gorm.DB, r *gin.Engine) {
 
 	}, groupHandlers.HandleGetGroupsByUserID)
 	rg.GET("/group/:id", groupHandlers.HandleGetGroupByID)
+	rg.POST("/group/:groupID/user/:userID", groupHandlers.HandleAddGroupMember)
 }

@@ -135,3 +135,38 @@ func (h *GroupHandler) HandleGetGroupsByUserID(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, groupResponses)
 }
+
+func (h *GroupHandler) HandleAddGroupMember(ctx *gin.Context) {
+	groupIDStr := ctx.Param("groupID")
+	groupID, err := uuid.Parse(groupIDStr)
+	if err != nil {
+		utils.AbortWithError(ctx, fmt.Errorf("parsing group id: %w", err))
+		return
+	}
+
+	userIDStr := ctx.Param("userID")
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		utils.AbortWithError(ctx, fmt.Errorf("paring user id: %w", err))
+		return
+	}
+
+	user, err := h.userService.GetUserByID(userID)
+	if err != nil {
+		utils.AbortWithError(ctx, err)
+		return
+	}
+
+	if user == nil {
+		utils.AbortWithError(ctx, &utils.InvalidArgumentError{Message: "invalid user id"})
+		return
+	}
+
+	err = h.groupService.AddMember(groupID, user)
+	if err != nil {
+		utils.AbortWithError(ctx, err)
+		return
+	}
+	ctx.Status(http.StatusNoContent)
+
+}

@@ -64,8 +64,10 @@ func (r *GroupRepository) MemberExistByID(groupID, userID uuid.UUID) (bool, erro
 }
 
 func (r *GroupRepository) AddMember(groupID uuid.UUID, userID uuid.UUID) error {
-	//TODO implement me
-	panic("implement me")
+	if err := r.DB.Table("user_groups").Create(map[string]interface{}{"user_id": userID, "group_id": groupID}).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *GroupRepository) RemoveMember(groupID uuid.UUID, userID uuid.UUID) error {
