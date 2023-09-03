@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/putto11262002/expense-tracker/api/domains"
@@ -9,13 +10,23 @@ import (
 
 type IGroupRepository interface {
 	CreateGroup(group *domains.Group) (*domains.Group, error)
-	GetGroups(userID uuid.UUID) ([]*domains.Group, error)
+	GetGroups(userID uuid.UUID) (*[]domains.Group, error)
 	GroupExistByID(groupID uuid.UUID) (bool, error)
 	MemberExistByID(groupID, userID uuid.UUID) (bool, error)
 	AddMember(groupID uuid.UUID, userID uuid.UUID) error
 	RemoveMember(groupID uuid.UUID, userID uuid.UUID) error
-	GetMembers(groupID uuid.UUID) ([]*domains.User, error)
 	SetOwner(userID uuid.UUID) error
+	GetGroupByID(groupID uuid.UUID) (*domains.Group, error)
+}
+
+func (r *GroupRepository) GetGroupByID(id uuid.UUID) (group *domains.Group, err error) {
+	if err = r.DB.Preload("Members").
+		Preload("Owner").
+		First(&group, "id = ?", id).
+		Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	return group, nil
 }
 
 func (r *GroupRepository) SetOwner(userID uuid.UUID) error {
@@ -27,19 +38,29 @@ type GroupRepository struct {
 	DB *gorm.DB
 }
 
-func (r *GroupRepository) GetGroups(userID uuid.UUID) ([]*domains.Group, error) {
-	//TODO implement me
-	panic("implement me")
+func (r *GroupRepository) GetGroups(userID uuid.UUID) (*[]domains.Group, error) {
+	var groups []domains.Group
+	if err := r.DB.Preload("Members").Preload("Owner").Where("id in (?)", r.DB.Table("user_groups").Where("user_id = ?", userID).Select("group_id")).Find(&groups).Error; err != nil {
+		return nil, err
+	}
+
+	return &groups, nil
 }
 
 func (r *GroupRepository) GroupExistByID(groupID uuid.UUID) (bool, error) {
-	//TODO implement me
-	panic("implement me")
+	var count int64
+	if err := r.DB.Model(&domains.Group{}).Where("id = ?", groupID).Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
 
 func (r *GroupRepository) MemberExistByID(groupID, userID uuid.UUID) (bool, error) {
-	//TODO implement me
-	panic("implement me")
+	var count int64
+	if err := r.DB.Table("user_groups").Where("group_id = ? AND user_id =  ?", groupID, userID).Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
 
 func (r *GroupRepository) AddMember(groupID uuid.UUID, userID uuid.UUID) error {
@@ -48,11 +69,6 @@ func (r *GroupRepository) AddMember(groupID uuid.UUID, userID uuid.UUID) error {
 }
 
 func (r *GroupRepository) RemoveMember(groupID uuid.UUID, userID uuid.UUID) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (r *GroupRepository) GetMembers(groupID uuid.UUID) ([]*domains.User, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -70,6 +86,7 @@ func (r *GroupRepository) CreateGroup(group *domains.Group) (*domains.Group, err
 		if err := tx.Create(&savedGroup).Error; err != nil {
 			return err
 		}
+
 		group.ID = savedGroup.ID
 
 		err := tx.Table("user_groups").Create(map[string]interface{}{"user_id": group.Owner.ID, "group_id": group.ID}).Error

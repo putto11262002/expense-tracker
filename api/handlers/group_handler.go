@@ -40,16 +40,17 @@ type GroupResponse struct {
 
 func NewGroupResponse(group *domains.Group) *GroupResponse {
 	if group == nil {
-		return &GroupResponse{}
+		return nil
 	}
 
-	members := []UserResponse{}
+	var members []UserResponse
 	for _, member := range group.Members {
 		members = append(members, *NewUserResponse(&member))
 	}
 	owner := *NewUserResponse(&group.Owner)
 
 	return &GroupResponse{
+		ID:        group.ID.String(),
 		Name:      group.Name,
 		Owner:     owner,
 		Members:   members,
@@ -92,4 +93,45 @@ func (h *GroupHandler) HandleCreateGroup(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, NewGroupResponse(group))
 
+}
+
+func (h *GroupHandler) HandleGetGroupByID(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		utils.AbortWithError(ctx, &utils.InvalidArgumentError{
+			Message: "invalid group id",
+		})
+		return
+	}
+	group, err := h.groupService.GetGroupByID(id)
+	if err != nil {
+		utils.AbortWithError(ctx, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, NewGroupResponse(group))
+}
+
+func (h *GroupHandler) HandleGetGroupsByUserID(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		utils.AbortWithError(ctx, &utils.InvalidArgumentError{
+			Message: "invalid group id",
+		})
+		return
+	}
+	groups, err := h.groupService.GetGroupsByUserID(id)
+	if err != nil {
+		return
+	}
+
+	var groupResponses []*GroupResponse
+
+	for _, group := range *groups {
+		groupResponse := NewGroupResponse(&group)
+		groupResponses = append(groupResponses, groupResponse)
+	}
+
+	ctx.JSON(http.StatusOK, groupResponses)
 }

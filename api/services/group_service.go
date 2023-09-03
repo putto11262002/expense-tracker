@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-
 	"github.com/google/uuid"
 	"github.com/putto11262002/expense-tracker/api/domains"
 	"github.com/putto11262002/expense-tracker/api/repositories"
@@ -31,13 +30,32 @@ type IGroupService interface {
 
 	// AddMember adds a member to an existing group identified by its ID.
 	AddMember(id uuid.UUID, user *domains.User) error
-
 	// RemoveMember removes a member from an existing group identified by its ID.
 	// Note: This operation is not currently supported and returns an error.
 	RemoveMember(id uuid.UUID, user *domains.User) error
+
+	GetGroupByID(id uuid.UUID) (*domains.Group, error)
+
+	GetGroupsByUserID(id uuid.UUID) (*[]domains.Group, error)
 }
 
-func (s GroupService) CreateGroup(owner *domains.User, name string) (*domains.Group, error) {
+func (s *GroupService) GetGroupByID(id uuid.UUID) (*domains.Group, error) {
+	group, err := s.groupRepository.GetGroupByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return group, nil
+}
+
+func (s *GroupService) GetGroupsByUserID(id uuid.UUID) (*[]domains.Group, error) {
+	groups, err := s.groupRepository.GetGroups(id)
+	if err != nil {
+		return nil, err
+	}
+	return groups, nil
+}
+
+func (s *GroupService) CreateGroup(owner *domains.User, name string) (*domains.Group, error) {
 	group, err := s.groupRepository.CreateGroup(domains.NewGroup(name, *owner))
 	if err != nil {
 		return nil, err
@@ -46,7 +64,7 @@ func (s GroupService) CreateGroup(owner *domains.User, name string) (*domains.Gr
 	return group, nil
 }
 
-func (s GroupService) AddMember(groupID uuid.UUID, user *domains.User) error {
+func (s *GroupService) AddMember(groupID uuid.UUID, user *domains.User) error {
 	exist, err := s.groupRepository.GroupExistByID(groupID)
 	if err != nil {
 		return err
@@ -73,7 +91,7 @@ func (s GroupService) AddMember(groupID uuid.UUID, user *domains.User) error {
 	return nil
 }
 
-func (s GroupService) RemoveMember(groupID uuid.UUID, user *domains.User) error {
+func (s *GroupService) RemoveMember(groupID uuid.UUID, user *domains.User) error {
 	exist, err := s.groupRepository.GroupExistByID(groupID)
 	if err != nil {
 		return err
@@ -107,12 +125,7 @@ func (s GroupService) RemoveMember(groupID uuid.UUID, user *domains.User) error 
 
 }
 
-func (s GroupService) GetGroupMembers(groupID uuid.UUID) ([]*domains.User, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (s GroupService) DeleteGroup(id uuid.UUID) error {
+func (s *GroupService) DeleteGroup(id uuid.UUID) error {
 	//TODO implement me
 	panic("implement me")
 }

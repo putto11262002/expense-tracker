@@ -69,7 +69,7 @@ func NewLoginResponse(result *services.UserLoginResult) *LoginResponse {
 
 func NewUserResponse(user *domains.User) *UserResponse {
 	if user == nil {
-		return &UserResponse{}
+		return nil
 	}
 
 	return &UserResponse{
