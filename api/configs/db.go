@@ -82,7 +82,7 @@ func ConnectDB() (*gorm.DB, error) {
 }
 
 func AutoMigrate(db *gorm.DB) error {
-	if err := db.AutoMigrate(&domains.User{}, &domains.Group{}); err != nil {
+	if err := db.AutoMigrate(&domains.User{}, &domains.Group{}, &domains.Expense{}, &domains.Split{}); err != nil {
 		return fmt.Errorf("auto migration: %w", err)
 	}
 	return nil

@@ -35,6 +35,12 @@ func GlobalErrorHandler() gin.HandlerFunc {
 				return
 			}
 
+			var illegalArgumentError *utils.InvalidArgumentError
+			if errors.As(appErr, &illegalArgumentError) {
+				ctx.JSON(http.StatusUnauthorized, gin.H{"error": illegalArgumentError.Error()})
+				return
+			}
+
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong, please try again later"})
 			return
 

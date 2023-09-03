@@ -40,6 +40,8 @@ func main() {
 	routes.NewAuthRoutes(db, r)
 	routes.NewGroupRoutes(db, r)
 
+	routes.SetUpRoutes(r, db)
+
 	err = r.Run(fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatal(fmt.Errorf("starting server: %w", err))
