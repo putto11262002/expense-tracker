@@ -35,12 +35,13 @@ func main() {
 	r := gin.Default()
 
 	r.Use(middlewares.GlobalErrorHandler())
+	r.Use(middlewares.CORSMiddleware())
+
+	routes.SetUpRoutes(r, db)
 
 	routes.NewUserRoutes(db, r)
 	routes.NewAuthRoutes(db, r)
 	routes.NewGroupRoutes(db, r)
-
-	routes.SetUpRoutes(r, db)
 
 	err = r.Run(fmt.Sprintf(":%d", port))
 	if err != nil {
