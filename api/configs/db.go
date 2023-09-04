@@ -62,7 +62,7 @@ func ConnectDB() (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	dns := fmt.Sprintf(`%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=UTC`,
+	dns := fmt.Sprintf(`%s:%s@(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=UTC`,
 		config.Username,
 		config.Password,
 		config.Host,

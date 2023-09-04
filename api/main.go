@@ -12,10 +12,13 @@ import (
 
 func main() {
 
-	err := configs.LoadEnv(".env")
-	if err != nil {
-		log.Fatal(err)
+	if configs.GetGoEnv() != "production" {
+		err := configs.LoadEnv(".env")
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
+
 
 	db, err := configs.ConnectDB()
 	if err != nil {
