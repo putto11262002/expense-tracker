@@ -12,7 +12,7 @@ type IExpenseService interface {
 	// CreateExpense validates that Split.Value add up to Amount and create a new expense
 	CreateExpense(input *CreateExpenseInput) (uuid.UUID, error)
 	GetExpenseByID(id uuid.UUID) (*domains.Expense, error)
-	GetExpenses(filter GetExpenseFilter) (*[]domains.Expense, error)
+	GetExpenses(filter repositories.GetExpenseFilter) (*[]domains.Expense, error)
 }
 
 type ExpenseService struct {
@@ -60,9 +60,6 @@ func NewExpenseInput(groupID uuid.UUID, description string, category string, dat
 	}
 }
 
-type GetExpenseFilter struct {
-}
-
 func (e ExpenseService) CreateExpense(input *CreateExpenseInput) (uuid.UUID, error) {
 	// validate that the all Split.Value in input.Splits add up to input.Amount
 	sum := int64(0)
@@ -104,7 +101,10 @@ func (e ExpenseService) GetExpenseByID(id uuid.UUID) (*domains.Expense, error) {
 	panic("implement me")
 }
 
-func (e ExpenseService) GetExpenses(filter GetExpenseFilter) (*[]domains.Expense, error) {
-	//TODO implement me
-	panic("implement me")
+func (e ExpenseService) GetExpenses(filter repositories.GetExpenseFilter) (*[]domains.Expense, error) {
+	expenses, err := e.expenseRepository.GetExpenses(filter)
+	if err != nil {
+		return nil, err
+	}
+	return expenses, nil
 }

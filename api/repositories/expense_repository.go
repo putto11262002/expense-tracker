@@ -14,10 +14,19 @@ type IExpenseRepository interface {
 }
 
 type GetExpenseFilter struct {
+	GroupIDs []uuid.UUID
+	UserIDs  []uuid.UUID
 	From     time.Time
 	To       time.Time
-	GroupIDs []uuid.UUID
-	userIDs  []uuid.UUID
+}
+
+func NewGetExpenseFilter(groupIDs []uuid.UUID, userIDs []uuid.UUID, from time.Time, to time.Time) *GetExpenseFilter {
+	return &GetExpenseFilter{
+		GroupIDs: groupIDs,
+		UserIDs:  userIDs,
+		From:     from,
+		To:       to,
+	}
 }
 
 type ExpenseRepository struct {
@@ -46,6 +55,36 @@ func (e ExpenseRepository) GetExpenseByID(id uuid.UUID) (*domains.Expense, error
 }
 
 func (e ExpenseRepository) GetExpenses(filter GetExpenseFilter) (*[]domains.Expense, error) {
-	//TODO implement me
-	panic("implement me")
+	query := e.db
+
+	var expenses []domains.Expense
+
+	var subquery *gorm.DB
+
+	if filter.UserIDs != nil {
+		subquery = e.db.Table("splits").Where("user_id in ?", filter.UserIDs)
+
+	}
+
+	if filter.GroupIDs != nil {
+		query.Where("group_id in ?", filter.GroupIDs)
+	}
+
+	if !filter.To.IsZero() {
+		query.Where("date <= ?", filter.To)
+	}
+
+	if !filter.From.IsZero() {
+		query.Where("date >= ?", filter.From)
+	}
+
+	if subquery != nil {
+		query.Where("id in (?)", subquery.Select("group_id"))
+	}
+
+	if err := query.Preload("Splits").Find(&expenses).Error; err != nil {
+		return nil, err
+	}
+
+	return &expenses, nil
 }

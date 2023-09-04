@@ -17,6 +17,7 @@ func SetUpRoutes(r *gin.Engine, db *gorm.DB) {
 	expenseRG := r.Group("/expense")
 	expenseRG.Use(middlewares.JWTAuthMiddleware())
 	expenseRG.POST("", expenseHandler.HandleCreateExpense)
-	expenseRG.GET("/:id", expenseHandler.HandleGetExpenseByID)
+	expenseRG.GET(":id", expenseHandler.HandleGetExpenseByID)
+	expenseRG.GET("", expenseHandler.HandleGetExpense)
 
 }
