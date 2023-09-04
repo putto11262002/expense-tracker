@@ -14,11 +14,9 @@ func SetUpRoutes(r *gin.Engine, db *gorm.DB) {
 	expenseService := services.NewExpenseService(expenseRepository)
 	expenseHandler := handlers.NewExpenseHandler(expenseService)
 
-	r.Use(middlewares.CORSMiddleware())
-
 	expenseRG := r.Group("/expense")
 	expenseRG.Use(middlewares.JWTAuthMiddleware())
-	expenseRG.POST("/", expenseHandler.HandleCreateExpense)
+	expenseRG.POST("", expenseHandler.HandleCreateExpense)
 	expenseRG.GET("/:id", expenseHandler.HandleGetExpenseByID)
 
 }
