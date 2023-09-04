@@ -105,3 +105,55 @@ export const createExpenseFormSchema = z
   });
 
 export type CreateExpenseFormDataType = z.infer<typeof createExpenseFormSchema>;
+
+
+
+
+/**
+ *  {
+        "groupID": "085d448e-3781-43e8-aa84-11817e3fb51f",
+        "id": "0636ec85-82c4-42bf-b982-ed2028584bcf",
+        "description": "Flat toilet rolls",
+        "category": "Necessities",
+        "date": "2023-09-04T15:30:00Z",
+        "paidBy": "f138effa-ef76-4386-ba7e-52ba60946a5c",
+        "amount": 10000,
+        "splits": [
+            {
+                "expenseID": "0636ec85-82c4-42bf-b982-ed2028584bcf",
+                "value": 10000,
+                "userID": "f138effa-ef76-4386-ba7e-52ba60946a5c"
+            }
+        ],
+        "createdAt": "2023-09-03T23:17:52.711Z",
+        "updatedAt": "2023-09-03T23:17:52.711Z"
+    },
+ */
+
+
+
+export type GetExpensesQueryType = {
+  userID?: string
+  groupID?: string
+  from?: string
+  to?: string
+}
+
+export type  SplitType = {
+  expenseID: string
+  value: number
+  userID: string
+}
+
+export type ExpenseType = {
+  ID: string
+  groupID: string
+  description: string
+  category: string
+  date: Date
+  paidBy: string
+  amount: number
+  splits: SplitType[]
+  createdAt: Date
+  updatedAt: Date
+}

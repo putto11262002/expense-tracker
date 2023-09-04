@@ -1,14 +1,24 @@
 import React from 'react'
 import CreateExpense from '../components/CreateExpense'
+import ExpenseTable from '../components/ExpenseTable'
+
 
 function Dashboard() {
+
+ 
   return (
    <>
-   <div>
+   <div className='pb-4'>
     <CreateExpense/>
+
+   
     
    </div>
+
+   <ExpenseTable/>
    </>
+
+
   )
 }
 
