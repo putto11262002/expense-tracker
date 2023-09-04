@@ -23,7 +23,7 @@ func NewExpenseHandler(expenseService services.IExpenseService) *ExpenseHandler 
 
 type ExpenseResponse struct {
 	GroupID     uuid.UUID       `json:"groupID"`
-	ID          uuid.UUID       `json:"id"`
+	ID          uuid.UUID       `json:"ID"`
 	Description string          `json:"description"`
 	Category    string          `json:"category"`
 	Date        time.Time       `json:"date"`
@@ -148,6 +148,7 @@ func (h *ExpenseHandler) HandleGetExpense(ctx *gin.Context) {
 
 	groupIDStr := ctx.Query("groupID")
 	var groupID uuid.UUID
+
 	if groupIDStr != "" {
 		groupID, err = uuid.Parse(groupIDStr)
 		if err != nil {
@@ -184,8 +185,8 @@ func (h *ExpenseHandler) HandleGetExpense(ctx *gin.Context) {
 	}
 
 	expenses, err := h.expenseService.GetExpenses(*repositories.NewGetExpenseFilter(
-		[]uuid.UUID{query.GroupID},
-		[]uuid.UUID{query.UserID},
+		query.GroupID,
+		query.UserID,
 		query.From,
 		query.To,
 	))

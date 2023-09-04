@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/putto11262002/expense-tracker/api/domains"
 	"gorm.io/gorm"
@@ -14,13 +15,13 @@ type IExpenseRepository interface {
 }
 
 type GetExpenseFilter struct {
-	GroupIDs []uuid.UUID
-	UserIDs  []uuid.UUID
+	GroupIDs uuid.UUID
+	UserIDs  uuid.UUID
 	From     time.Time
 	To       time.Time
 }
 
-func NewGetExpenseFilter(groupIDs []uuid.UUID, userIDs []uuid.UUID, from time.Time, to time.Time) *GetExpenseFilter {
+func NewGetExpenseFilter(groupIDs uuid.UUID, userIDs uuid.UUID, from time.Time, to time.Time) *GetExpenseFilter {
 	return &GetExpenseFilter{
 		GroupIDs: groupIDs,
 		UserIDs:  userIDs,
@@ -61,25 +62,25 @@ func (e ExpenseRepository) GetExpenses(filter GetExpenseFilter) (*[]domains.Expe
 
 	var subquery *gorm.DB
 
-	if filter.UserIDs != nil {
-		subquery = e.db.Table("splits").Where("user_id in ?", filter.UserIDs)
-
+	fmt.Println(filter.UserIDs)
+	if filter.UserIDs != uuid.Nil {
+		subquery = e.db.Table("splits").Where("user_id = ?", filter.UserIDs)
 	}
 
-	if filter.GroupIDs != nil {
-		query.Where("group_id in ?", filter.GroupIDs)
+	if filter.GroupIDs != uuid.Nil {
+		query = query.Where("group_id = ?", filter.GroupIDs)
 	}
 
 	if !filter.To.IsZero() {
-		query.Where("date <= ?", filter.To)
+		query = query.Where("date <= ?", filter.To)
 	}
 
 	if !filter.From.IsZero() {
-		query.Where("date >= ?", filter.From)
+		query = query.Where("date >= ?", filter.From)
 	}
 
 	if subquery != nil {
-		query.Where("id in (?)", subquery.Select("group_id"))
+		query = query.Where("id in (?)", subquery.Select("expense_id"))
 	}
 
 	if err := query.Preload("Splits").Find(&expenses).Error; err != nil {
