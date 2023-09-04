@@ -1,11 +1,11 @@
 import React from 'react'
-import { Button } from '../components/ui/button'
+import CreateExpense from '../components/CreateExpense'
 
 function Dashboard() {
   return (
    <>
    <div>
-    <Button>Add Expense</Button>
+    <CreateExpense/>
     
    </div>
    </>

@@ -8,3 +8,5 @@ export const getMyGroups = async () => {
 export const CreateGroup = async (payload: {name: string}) => {
   return api.post("/group", payload).then((res) => res.data as IGroup);
 }
+
+

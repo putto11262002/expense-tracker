@@ -1,6 +1,7 @@
 import axios from "axios";
 import { ILoginRequest, ILoginResponse } from "../interfaces/login";
 import api from "./api";
+import { IUser } from "../interfaces/user";
 
 export const login = (payload: ILoginRequest) => {
   return api
@@ -21,3 +22,8 @@ export const login = (payload: ILoginRequest) => {
       
     });
 };
+
+
+export const getMe = () => {
+    return api.get("/user/me").then(res => res.data as IUser)
+}

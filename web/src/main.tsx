@@ -9,6 +9,7 @@ import DashboardLayout from './components/layout/DashboardLayout.tsx'
 import Dashboard from './pages/Dashboard.tsx'
 import { Provider } from 'react-redux'
 import store from './redux/store.ts'
+import AuthProvider from './providers/AuthProvider.tsx'
 
 
 const router = createBrowserRouter([
@@ -32,7 +33,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
   <Provider store={store}>
   <QueryClientProvider client={queryClient}>
+   <AuthProvider>
    <RouterProvider router={router}/>
+   </AuthProvider>
    </QueryClientProvider>
   </Provider>
   </React.StrictMode>,

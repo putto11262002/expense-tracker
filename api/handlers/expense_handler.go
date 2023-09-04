@@ -32,7 +32,6 @@ type CreateExpenseRequest struct {
 	Date        time.Time `json:"date" binding:"required"`
 	PaidBy      uuid.UUID
 	Amount      float64        `json:"amount" binding:"required"`
-	SplitMode   string         `json:"splitMode" binding:"required"`
 	Splits      []SplitRequest `json:"splits"  binding:"required"`
 }
 
