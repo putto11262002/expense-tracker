@@ -1,4 +1,3 @@
-import React from 'react'
 import CreateExpense from '../components/CreateExpense'
 import ExpenseTable from '../components/ExpenseTable'
 

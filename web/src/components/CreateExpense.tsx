@@ -68,7 +68,7 @@ function CreateExpense() {
   const { auth, dashboard } = useAppSelector((state) => state);
   const {isLoggedIn, user} = auth
   const {selectedGroup} = dashboard
-  const [splitMode, setSplitMode] = useState("amount");
+  const [, setSplitMode] = useState("amount");
   const amount = watch("amount");
   const [left, setLeft] = useState(0);
 
