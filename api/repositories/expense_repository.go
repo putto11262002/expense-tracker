@@ -1,17 +1,20 @@
 package repositories
 
 import (
+	"errors"
 	"fmt"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/putto11262002/expense-tracker/api/domains"
 	"gorm.io/gorm"
-	"time"
 )
 
 type IExpenseRepository interface {
 	CreateExpense(expense *domains.Expense) (uuid.UUID, error)
 	GetExpenseByID(id uuid.UUID) (*domains.Expense, error)
 	GetExpenses(filter GetExpenseFilter) (*[]domains.Expense, error)
+	UpdateSplit(expense *domains.Split) (error)
 }
 
 type GetExpenseFilter struct {
@@ -50,6 +53,9 @@ func (e ExpenseRepository) CreateExpense(expense *domains.Expense) (uuid.UUID, e
 func (e ExpenseRepository) GetExpenseByID(id uuid.UUID) (*domains.Expense, error) {
 	var expense domains.Expense
 	if err := e.db.Preload("Splits").First(&expense, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound){
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &expense, nil
@@ -89,3 +95,12 @@ func (e ExpenseRepository) GetExpenses(filter GetExpenseFilter) (*[]domains.Expe
 
 	return &expenses, nil
 }
+
+func (e *ExpenseRepository) UpdateSplit(split *domains.Split) (error) {
+	if err := e.db.Model(split).Where("user_id = ? AND expense_id = ?", split.UserID, split.ExpenseID).Update("settle", split.Settle).Error; err != nil {
+		return err
+	}
+	return  nil
+}
+
+

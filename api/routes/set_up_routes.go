@@ -12,12 +12,16 @@ import (
 func SetUpRoutes(r *gin.Engine, db *gorm.DB) {
 	expenseRepository := repositories.NewExpenseRepository(db)
 	expenseService := services.NewExpenseService(expenseRepository)
-	expenseHandler := handlers.NewExpenseHandler(expenseService)
+
+	userRepository := repositories.NewUserRepository(db)
+	userService := services.NewUserService(userRepository)
+	expenseHandler := handlers.NewExpenseHandler(expenseService, userService)
 
 	expenseRG := r.Group("/expense")
 	expenseRG.Use(middlewares.JWTAuthMiddleware())
 	expenseRG.POST("", expenseHandler.HandleCreateExpense)
 	expenseRG.GET(":id", expenseHandler.HandleGetExpenseByID)
 	expenseRG.GET("", expenseHandler.HandleGetExpense)
+	expenseRG.POST("dept/settle", expenseHandler.HandleSettleDepth)
 
 }

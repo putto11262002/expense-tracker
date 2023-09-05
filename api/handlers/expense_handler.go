@@ -1,23 +1,27 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/putto11262002/expense-tracker/api/repositories"
 	"github.com/putto11262002/expense-tracker/api/services"
 	"github.com/putto11262002/expense-tracker/api/utils"
-	"net/http"
-	"time"
 )
 
 type ExpenseHandler struct {
 	expenseService services.IExpenseService
+	userService services.IUserService
 }
 
-func NewExpenseHandler(expenseService services.IExpenseService) *ExpenseHandler {
+func NewExpenseHandler(expenseService services.IExpenseService, userService services.IUserService) *ExpenseHandler {
 	return &ExpenseHandler{
 		expenseService: expenseService,
+		userService: userService,
 	}
 }
 
@@ -53,20 +57,23 @@ type SplitResponse struct {
 	ExpenseID uuid.UUID `json:"expenseID"`
 	Value     float64   `json:"value"`
 	UserID    uuid.UUID `json:"userID"`
+	Settle bool `json:"settle"`
 }
 
-func NewSplitResponse(expenseID uuid.UUID, value float64, userID uuid.UUID) *SplitResponse {
+func NewSplitResponse(expenseID uuid.UUID, value float64, userID uuid.UUID, settle bool) *SplitResponse {
 
 	return &SplitResponse{
 		ExpenseID: expenseID,
 		Value:     value,
 		UserID:    userID,
+		Settle: settle,
 	}
 }
 
 type SplitRequest struct {
 	UserID uuid.UUID `json:"userID" binding:"required"`
 	Value  float64   `json:"value" binding:"required"`
+	Settle bool `json:"settle"`
 }
 
 type CreateExpenseRequest struct {
@@ -88,7 +95,7 @@ func (h *ExpenseHandler) HandleCreateExpense(ctx *gin.Context) {
 
 	var splitsInput []services.SplitInput
 	for _, split := range expenseReq.Splits {
-		splitsInput = append(splitsInput, *services.NewSplitInput(split.UserID, split.Value))
+		splitsInput = append(splitsInput, *services.NewSplitInput(split.UserID, split.Value, split.Settle))
 	}
 
 	expenseID, err := h.expenseService.CreateExpense(services.NewExpenseInput(expenseReq.GroupID,
@@ -204,6 +211,7 @@ func (h *ExpenseHandler) HandleGetExpense(ctx *gin.Context) {
 				split.ExpenseID,
 				split.Value,
 				split.UserID,
+				split.Settle,
 			))
 		}
 		expenseRespose = append(expenseRespose, *NewExpenseResponse(
@@ -221,5 +229,45 @@ func (h *ExpenseHandler) HandleGetExpense(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, expenseRespose)
+
+}
+
+type SettleDepthRequest struct {
+	ExpenseID uuid.UUID `json:"expenseID"`
+}
+
+func (h *ExpenseHandler) HandleSettleDepth(ctx *gin.Context){
+	var request SettleDepthRequest
+
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		utils.AbortWithError(ctx, err)
+		return
+	}
+
+	claims := utils.GetClaimsFromCtx(ctx)
+	if claims == nil {
+		utils.AbortWithError(ctx, errors.New("cannot retrieve claims from context"))
+		return
+	}
+
+	id, err := uuid.Parse(claims.Subject)
+	if err != nil {
+		utils.AbortWithError(ctx, fmt.Errorf("parse user id from claims: %w", err))
+	}
+
+	user, err := h.userService.GetUserByID(id)
+	if err != nil {
+		return
+	}
+	if user == nil {
+		utils.AbortWithError(ctx, errors.New("cannot find user using claims subject"))
+	}
+
+	if err := h.expenseService.SettleDept(request.ExpenseID, user); err != nil {
+		utils.AbortWithError(ctx, err)
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
 
 }

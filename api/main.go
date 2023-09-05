@@ -19,7 +19,6 @@ func main() {
 		}
 	}
 
-
 	db, err := configs.ConnectDB()
 	if err != nil {
 		log.Fatal(err)

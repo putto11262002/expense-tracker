@@ -2,16 +2,17 @@ package handlers
 
 import (
 	"fmt"
+	"log"
+	"math"
+	"net/http"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/putto11262002/expense-tracker/api/configs"
 	"github.com/putto11262002/expense-tracker/api/domains"
 	"github.com/putto11262002/expense-tracker/api/services"
 	"github.com/putto11262002/expense-tracker/api/utils"
-	"log"
-	"math"
-	"net/http"
-	"time"
 )
 
 type UserHandler struct {
@@ -63,11 +64,11 @@ type UpdateUserRequestBody struct {
 func NewLoginResponse(result *services.UserLoginResult) *LoginResponse {
 	return &LoginResponse{
 		Token: result.Token,
-		User:  NewUserResponse(result.User),
+		User:  UserDomainToResponse(result.User),
 	}
 }
 
-func NewUserResponse(user *domains.User) *UserResponse {
+func UserDomainToResponse(user *domains.User) *UserResponse {
 	if user == nil {
 		return nil
 	}
@@ -104,7 +105,7 @@ func (h *UserHandler) HandleRegister(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, NewUserResponse(user))
+	ctx.JSON(http.StatusOK, UserDomainToResponse(user))
 }
 
 func (h *UserHandler) HandleLogin(ctx *gin.Context) {
@@ -155,7 +156,7 @@ func (h *UserHandler) HandleGetUserByID(ctx *gin.Context) {
 		utils.AbortWithError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, NewUserResponse(user))
+	ctx.JSON(http.StatusOK, UserDomainToResponse(user))
 }
 
 func (h *UserHandler) HandleGetUsers(ctx *gin.Context) {
@@ -166,7 +167,7 @@ func (h *UserHandler) HandleGetUsers(ctx *gin.Context) {
 
 	notInGroupIDStr := ctx.Query("notInGroup")
 
-	notInGroupID, _ :=  uuid.Parse((notInGroupIDStr)) 
+	notInGroupID, _ := uuid.Parse((notInGroupIDStr))
 
 	users, err := h.service.GetUsers(*services.NewGetUserFilter(q, notInGroupID, email))
 
@@ -177,20 +178,18 @@ func (h *UserHandler) HandleGetUsers(ctx *gin.Context) {
 
 	var userResponse []UserResponse
 	for _, user := range *users {
-		userResponse = append(userResponse, *NewUserResponse(&user))
+		userResponse = append(userResponse, *UserDomainToResponse(&user))
 	}
 
 	ctx.JSON(http.StatusOK, userResponse)
 }
-
-
 
 func (h *UserHandler) HandleUserByEmail(ctx *gin.Context) {
 	email := ctx.Param("email")
 	user, err := h.service.GetUserByEmail(email)
 	if err != nil {
 		utils.AbortWithError(ctx, err)
-		return 
+		return
 	}
-	ctx.JSON(http.StatusOK, NewUserResponse(user))
+	ctx.JSON(http.StatusOK, UserDomainToResponse(user))
 }

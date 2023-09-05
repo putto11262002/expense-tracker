@@ -13,7 +13,7 @@ type Expense struct {
 	Date        time.Time // required: the date in which this expense was incurred
 	PaidBy      uuid.UUID // required: the user id that paid for the expense
 	Amount      float64   // required: the amount of the expense
-	Splits      []Split   `gorm:"foreignKey:ExpenseID"` // required, Split.Value must add up to Amount; a splice of splits associated to this expense
+	Splits      []Split   `gorm:"foreignKey:ExpenseID;constraint:OnUpdate:CASCADE;,OnDelete:CASCADE"` // required, Split.Value must add up to Amount; a splice of splits associated to this expense
 	CreateAt    time.Time `gorm:"autoCreateTime"`
 	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
 }
@@ -22,15 +22,18 @@ type Split struct {
 	ExpenseID uuid.UUID `gorm:"type:char(36)"` // the ID of the expense that the split is associated with
 	Value     float64
 	UserID    uuid.UUID // the id of the group member associated with the split
+	Settle bool
 }
 
 func NewSplits(
 	value float64,
 	userID uuid.UUID,
+	settle bool,
 ) *Split {
 	return &Split{
 		UserID: userID,
 		Value:  value,
+		Settle: settle,
 	}
 }
 func NewExpense(

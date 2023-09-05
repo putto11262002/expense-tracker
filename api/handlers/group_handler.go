@@ -3,10 +3,11 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/putto11262002/expense-tracker/api/domains"
 	"net/http"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/putto11262002/expense-tracker/api/domains"
 
 	"github.com/gin-gonic/gin"
 	"github.com/putto11262002/expense-tracker/api/services"
@@ -45,9 +46,9 @@ func NewGroupResponse(group *domains.Group) *GroupResponse {
 
 	var members []UserResponse
 	for _, member := range group.Members {
-		members = append(members, *NewUserResponse(&member))
+		members = append(members, *UserDomainToResponse(&member))
 	}
-	owner := *NewUserResponse(&group.Owner)
+	owner := *UserDomainToResponse(&group.Owner)
 
 	return &GroupResponse{
 		ID:        group.ID.String(),
@@ -136,22 +137,19 @@ func (h *GroupHandler) HandleGetGroupsByUserID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, groupResponses)
 }
 
+type AddUserToGroupRequest struct {
+	GroupID uuid.UUID `json:"groupID"`
+	UserID  uuid.UUID `json:"userID"`
+}
+
 func (h *GroupHandler) HandleAddGroupMember(ctx *gin.Context) {
-	groupIDStr := ctx.Param("groupID")
-	groupID, err := uuid.Parse(groupIDStr)
-	if err != nil {
-		utils.AbortWithError(ctx, fmt.Errorf("parsing group id: %w", err))
+	var request AddUserToGroupRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		utils.AbortWithError(ctx, err)
 		return
 	}
 
-	userIDStr := ctx.Param("userID")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		utils.AbortWithError(ctx, fmt.Errorf("paring user id: %w", err))
-		return
-	}
-
-	user, err := h.userService.GetUserByID(userID)
+	user, err := h.userService.GetUserByID(request.UserID)
 	if err != nil {
 		utils.AbortWithError(ctx, err)
 		return
@@ -162,7 +160,7 @@ func (h *GroupHandler) HandleAddGroupMember(ctx *gin.Context) {
 		return
 	}
 
-	err = h.groupService.AddMember(groupID, user)
+	err = h.groupService.AddMember(request.GroupID, user)
 	if err != nil {
 		utils.AbortWithError(ctx, err)
 		return
