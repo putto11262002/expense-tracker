@@ -9,10 +9,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func SetUpRoutes(r *gin.Engine, db *gorm.DB) {
+func NewExpenseRoutes(r *gin.Engine, db *gorm.DB) {
 	expenseRepository := repositories.NewExpenseRepository(db)
 	expenseService := services.NewExpenseService(expenseRepository)
-
 	userRepository := repositories.NewUserRepository(db)
 	userService := services.NewUserService(userRepository)
 	expenseHandler := handlers.NewExpenseHandler(expenseService, userService)

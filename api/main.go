@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/putto11262002/expense-tracker/api/configs"
 	"github.com/putto11262002/expense-tracker/api/middlewares"
 	"github.com/putto11262002/expense-tracker/api/routes"
-	"log"
 
 	"github.com/gin-gonic/gin"
 )
@@ -39,8 +40,7 @@ func main() {
 	r.Use(middlewares.GlobalErrorHandler())
 	r.Use(middlewares.CORSMiddleware())
 
-	routes.SetUpRoutes(r, db)
-
+	routes.NewExpenseRoutes(r, db)
 	routes.NewUserRoutes(db, r)
 	routes.NewAuthRoutes(db, r)
 	routes.NewGroupRoutes(db, r)
