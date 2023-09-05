@@ -39,5 +39,7 @@ func NewUserRoutes(db *gorm.DB, r *gin.Engine) {
 		}, userHandler.HandleGetUserByID)
 
 	userRg.GET("/:id", userHandler.HandleGetUserByID)
+	userRg.GET("/email/:email", userHandler.HandleUserByEmail)
+	userRg.GET("", userHandler.HandleGetUsers)
 
 }

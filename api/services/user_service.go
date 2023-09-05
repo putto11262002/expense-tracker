@@ -75,6 +75,20 @@ func NewLoginResult(user *domains.User, token string, maxAge time.Duration) *Use
 	}
 }
 
+type GetUserFilter struct {
+	Q string
+	NotInGroupID uuid.UUID
+	Email string
+}
+
+func NewGetUserFilter(q string, notInGroupID uuid.UUID, email string) *GetUserFilter {
+	return &GetUserFilter{
+		Q: q,
+		NotInGroupID: notInGroupID,
+		Email: email,
+	}
+}
+
 // IUserService is an interface for managing user-related operations in the application.
 type IUserService interface {
 	// Register registers a new user with the provided registration input.
@@ -95,6 +109,8 @@ type IUserService interface {
 
 	// GetUserByUsername retrieves a user by their username.
 	GetUserByUsername(username string) (*domains.User, error)
+
+	GetUsers(filter GetUserFilter) (*[]domains.User, error)
 }
 
 func (s *UserService) Register(input *UserRegisterInput) (*domains.User, error) {
@@ -168,16 +184,18 @@ func (s *UserService) UpdateUser(input *UserUpdateInput) (*domains.User, error) 
 }
 
 func (s *UserService) GetUserByEmail(email string) (*domains.User, error) {
-	return nil, nil
+	 user, err := s.repository.GetUserByEmail(email)
+	 if err != nil {
+		return nil, err
+	 }
+	 return user, nil
 }
 
 func (s *UserService) GetUserByID(id uuid.UUID) (*domains.User, error) {
 	user, err := s.repository.GetUserByID(id)
 
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return user, nil
-		}
+		
 		return nil, fmt.Errorf("getting user by id: %w", err)
 	}
 	return user, nil
@@ -185,4 +203,13 @@ func (s *UserService) GetUserByID(id uuid.UUID) (*domains.User, error) {
 
 func (s *UserService) GetUserByUsername(username string) (*domains.User, error) {
 	return nil, nil
+}
+
+
+func (s *UserService) GetUsers(filter GetUserFilter) (*[]domains.User, error) {
+	users, err := s.repository.GetUsers(*repositories.NewUserFilter(filter.Email, filter.NotInGroupID, filter.Q))
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }

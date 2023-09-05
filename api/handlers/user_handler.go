@@ -157,3 +157,40 @@ func (h *UserHandler) HandleGetUserByID(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, NewUserResponse(user))
 }
+
+func (h *UserHandler) HandleGetUsers(ctx *gin.Context) {
+
+	q := ctx.Query("q")
+
+	email := ctx.Query("email")
+
+	notInGroupIDStr := ctx.Query("notInGroup")
+
+	notInGroupID, _ :=  uuid.Parse((notInGroupIDStr)) 
+
+	users, err := h.service.GetUsers(*services.NewGetUserFilter(q, notInGroupID, email))
+
+	if err != nil {
+		utils.AbortWithError(ctx, err)
+		return
+	}
+
+	var userResponse []UserResponse
+	for _, user := range *users {
+		userResponse = append(userResponse, *NewUserResponse(&user))
+	}
+
+	ctx.JSON(http.StatusOK, userResponse)
+}
+
+
+
+func (h *UserHandler) HandleUserByEmail(ctx *gin.Context) {
+	email := ctx.Param("email")
+	user, err := h.service.GetUserByEmail(email)
+	if err != nil {
+		utils.AbortWithError(ctx, err)
+		return 
+	}
+	ctx.JSON(http.StatusOK, NewUserResponse(user))
+}
