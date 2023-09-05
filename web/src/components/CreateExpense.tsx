@@ -40,7 +40,6 @@ import { useMutation, useQueryClient } from "react-query";
 import { createExpense } from "../services/expense";
 
 
-
 const expenseCategory = [
   {"label": "Housing", "value": "Housing"},
   {"label": "Food", "value": "Food"},
@@ -55,12 +54,6 @@ const expenseCategory = [
   {"label": "Other", "value": "Other"}
 ]
 
-function formatAsCurrency(number: number, currencyCode = "USD") {
-  return number.toLocaleString("en-US", {
-    style: "currency",
-    currency: currencyCode,
-  });
-}
 
 function CreateExpense() {
   const [openDialog, setOpenDialog] = React.useState(false);
@@ -72,7 +65,6 @@ function CreateExpense() {
     formState: { errors },
     setValue,
     reset,
-    getValues,
   } = useForm<CreateExpenseFormDataType>({
     reValidateMode: "onChange",
     resolver: zodResolver(createExpenseFormSchema),
@@ -85,7 +77,6 @@ function CreateExpense() {
   const {selectedGroup} = dashboard
   const [, setSplitMode] = useState("amount");
   const amount = watch("amount");
-  const [left, setLeft] = useState(0);
   const queryClient = useQueryClient()
 
   const {mutate: handleCreateExpense, isLoading: isCreatingExpense} = useMutation({
@@ -115,24 +106,8 @@ function CreateExpense() {
   useEffect(() => {
     if (openDialog) {
       reset({});
-      setLeft(0);
     }
   }, [openDialog, reset]);
-
-  const computeLeft = () => {
-    const splitSum =
-      Math.round(
-        (getValues("splits")
-          ?.filter(({ value }) => !isNaN(parseInt(String(value))))
-          .map(({ value }) => parseFloat(String(value)))
-          .reduce((x, y) => x + y) || 0) * 100
-      ) / 100;
-
-      const tempLeft = Math.round(((getValues("amount") || 0) - splitSum) * 100) / 100
-    setLeft(tempLeft);
-  };
-
-
 
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
@@ -157,8 +132,6 @@ function CreateExpense() {
                   value={value || ""}
                   onChange={(e) => {
                     onChange(e);
-
-                    computeLeft();
                   }}
                 />
               )}
@@ -229,7 +202,7 @@ function CreateExpense() {
                           )}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent  className="w-auto p-0 z-50" align="start">
                         <Calendar
                           mode="single"
                           className="bg-white shadow-md mb-2 rounded-sm"
@@ -273,7 +246,7 @@ function CreateExpense() {
                       Equally
                     </TabsTrigger>
                   </TabsList>
-                  <p className={cn("text-red-600", left === 0  && "text-green-600")}>{formatAsCurrency(left)}</p>
+                {errors['left'] &&  <p className={cn("text-red-600")}>{errors['left'].message?.toString()}</p>}
                 </div>
                 <TabsContent
                   className="max-h-[150px] overflow-y-scroll"
@@ -303,7 +276,7 @@ function CreateExpense() {
                                     value={value || ""}
                                     onChange={(e) => {
                                       onChange(e);
-                                      computeLeft();
+
                                     }}
                                   />
                                   {error && (

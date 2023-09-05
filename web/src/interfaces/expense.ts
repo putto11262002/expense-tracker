@@ -32,7 +32,7 @@ export type CreateExpenseRequestType  = {
 
 export const createExpenseFormSchema = z
   .object({
-    description: z.string({ required_error: "Please enter a description" }),
+    description: z.string({ required_error: "Please enter a description" }).max(20, "Description can only be 20 characters long"),
     category: z.string({ required_error: "Please select a category" }),
     amount: z.string().transform((val, ctx) => {
       const parsed = parseFloat(val);
