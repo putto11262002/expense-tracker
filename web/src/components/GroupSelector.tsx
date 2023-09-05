@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Button } from "./ui/button";
 import { ChevronDoubleDown } from "react-bootstrap-icons";
 import { CreateGroup, getMyGroups } from "../services/group";
-import { useMutation, useQuery } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { useAppDispatch, useAppSelector } from "../redux/store";
 import {
   Dialog,
@@ -23,7 +23,7 @@ import {
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { useForm } from "react-hook-form";
-import { queryClient } from "../main";
+
 import { Alert } from "./ui/alert";
 import { setSelectGroup } from "../redux/dashboardSlice";
 
@@ -33,6 +33,7 @@ function GroupSelector() {
   const { auth, dashboard } = useAppSelector((state) => state);
   const { isLoggedIn, user } = auth;
   const { selectedGroup } = dashboard;
+  const queryClient = useQueryClient()
 
   const formBtnRef = useRef<HTMLButtonElement>(null);
 

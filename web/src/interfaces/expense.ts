@@ -143,6 +143,7 @@ export type  SplitType = {
   expenseID: string
   value: number
   userID: string
+  settle: boolean
 }
 
 export type ExpenseType = {

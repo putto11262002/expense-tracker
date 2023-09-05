@@ -36,9 +36,24 @@ import { CalendarIcon } from "lucide-react";
 import { useAppSelector } from "../redux/store";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useMutation } from "react-query";
+import { useMutation, useQueryClient } from "react-query";
 import { createExpense } from "../services/expense";
-import { queryClient } from "../main";
+
+
+
+const expenseCategory = [
+  {"label": "Housing", "value": "Housing"},
+  {"label": "Food", "value": "Food"},
+  {"label": "Transportation", "value": "Transportation"},
+  {"label": "Utilities", "value": "Utilities"},
+  {"label": "Healthcare", "value": "Healthcare"},
+  {"label": "Education", "value": "Education"},
+  {"label": "Entertainment", "value": "Entertainment"},
+  {"label": "Insurance", "value": "Insurance"},
+  {"label": "Debt Payments", "value": "Debt Payments"},
+  {"label": "Savings", "value": "Savings"},
+  {"label": "Other", "value": "Other"}
+]
 
 function formatAsCurrency(number: number, currencyCode = "USD") {
   return number.toLocaleString("en-US", {
@@ -71,6 +86,7 @@ function CreateExpense() {
   const [, setSplitMode] = useState("amount");
   const amount = watch("amount");
   const [left, setLeft] = useState(0);
+  const queryClient = useQueryClient()
 
   const {mutate: handleCreateExpense, isLoading: isCreatingExpense} = useMutation({
     mutationFn: (formData: CreateExpenseFormDataType) => {
@@ -89,7 +105,7 @@ function CreateExpense() {
       return createExpense(payload)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["expense"])
+      queryClient.invalidateQueries({queryKey: ["expense"]})
       setOpenDialog(false)
     }
   })
@@ -163,11 +179,11 @@ function CreateExpense() {
                     <SelectValue className="" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="apple">Apple</SelectItem>
-                    <SelectItem value="banana">Banana</SelectItem>
-                    <SelectItem value="blueberry">Blueberry</SelectItem>
-                    <SelectItem value="grapes">Grapes</SelectItem>
-                    <SelectItem value="pineapple">Pineapple</SelectItem>
+                    {
+                      expenseCategory.map(({value, label}, idx) => (
+                        <SelectItem key={idx} value={value}>{label}</SelectItem>
+                      ))
+                    }
                   </SelectContent>
                 </Select>
               )}
