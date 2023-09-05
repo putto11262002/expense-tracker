@@ -9,7 +9,9 @@ import DashboardLayout from './components/layout/DashboardLayout.tsx'
 import Dashboard from './pages/Dashboard.tsx'
 import { Provider } from 'react-redux'
 import store from './redux/store.ts'
-import AuthProvider from './providers/AuthProvider.tsx'
+import InitAuth from './components/InitAuth.tsx'
+import ProtectedRouteWrapper from './components/ProtectedRouteWrapper.tsx'
+import RegisterPage from './pages/RegisterPage.tsx'
 
 
 const router = createBrowserRouter([
@@ -18,13 +20,22 @@ const router = createBrowserRouter([
     element: <LoginPage/>
   },
   {
+    path: "/register",
+    element: <RegisterPage/>
+  },
+  {
     element: <DashboardLayout/>,
-    children: [
-   {
-    path: "/",
-    element: <Dashboard/>
-   }
-    ]
+  children: [
+    {
+      element: <ProtectedRouteWrapper/>,
+      children: [
+        {
+         path: "/",
+         element: <Dashboard/>
+        }
+         ]
+    }
+  ]
   }
 ])
 
@@ -33,9 +44,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
   <Provider store={store}>
   <QueryClientProvider client={queryClient}>
-   <AuthProvider>
+   <InitAuth>
    <RouterProvider router={router}/>
-   </AuthProvider>
+   </InitAuth>
    </QueryClientProvider>
   </Provider>
   </React.StrictMode>,

@@ -7,7 +7,7 @@ import { useMutation } from "react-query";
 import { login } from "../services/auth";
 import { ArrowClockwise } from "react-bootstrap-icons";
 import { Alert } from "../components/ui/alert";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../redux/store";
 import { useEffect } from "react";
 import { init } from "../redux/authSlice";
@@ -60,7 +60,7 @@ function LoginPage() {
             <p className="text-center text-sm">{error}</p>
 
         </Alert>}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           <Label>Email</Label>
           <Input
             {...register("key", {
@@ -73,7 +73,7 @@ function LoginPage() {
           <p className="text-xs">{errors["key"]?.message?.toString()}</p>
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           <Label>Password</Label>
           <Input
             {...register("secret", {
@@ -87,6 +87,8 @@ function LoginPage() {
         <div className="text-center pt-3">
           <Button type="submit" disabled={isLoading} className="margin-x-auto px-5">{isLoading && <ArrowClockwise className="animate-spin mr-2 h-4 w-4"/>} Login</Button>
         </div>
+
+       <p className="text-center">Does not have an account? <Link className="underline" to={"/register"}>Register</Link></p>
       </form>
     </div>
   );
