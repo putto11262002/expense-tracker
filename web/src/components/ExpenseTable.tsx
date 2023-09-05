@@ -6,6 +6,7 @@ import { formatAsCurrency } from "../utils/format";
 import { Button } from "./ui/button";
 import { ExpenseType } from "../interfaces/expense";
 import api from "../services/api";
+import ViewSplit from "./ViewSplit";
 function ExpenseTable() {
   const { dashboard, auth } = useAppSelector((state) => state);
   const queryClient = useQueryClient()
@@ -118,7 +119,7 @@ function ExpenseTable() {
 
             <div className="grow"></div>
             <div className="flex gap-3">
-            <Button>View Splits</Button>
+           <ViewSplit expense={expense}/>
           {(!paidByMe && dept >0 ) &&  <Button onClick={() => handleSettleDept(expense.ID)}>Settle</Button>}
             </div>
           </div>
