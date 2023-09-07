@@ -56,7 +56,7 @@ make build-api
 ./api/bin/main 
 ```
 
-## Web App
+### Web App
 
 **Install Dependencies**
 
