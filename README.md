@@ -1,6 +1,6 @@
 # Expense Tracker
 
-This is a shared expense tracking application. The application allows users to create groups, add other users to the group and track their shared expenses. Users can add expenses to the group, specifying splits of the expense and settle any outstanding debts among the group members. 
+A shared expense tracking application implemennted in Go. The application allows users to create groups, add other users to the group and track their shared expenses. Users can add expenses to the group, specifying splits of the expense and settle any outstanding debts among the group members. 
 
 ## Project structure
 
