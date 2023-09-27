@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/putto11262002/expense-tracker/api/domains"
 	"github.com/putto11262002/expense-tracker/api/repositories"
-	utils2 "github.com/putto11262002/expense-tracker/api/utils"
+	"github.com/putto11262002/expense-tracker/api/utils"
 	"gorm.io/gorm"
 	"time"
 
@@ -122,7 +122,7 @@ func (s *UserService) Register(input *UserRegisterInput) (*domains.User, error) 
 	}
 
 	if exist {
-		return nil, &utils2.DataIntegrityError{
+		return nil, &utils.DataIntegrityError{
 			Message: "user already exist",
 		}
 	}
@@ -151,7 +151,7 @@ func (s *UserService) Login(input *UserLoginInput) (*UserLoginResult, error) {
 	user, err := s.repository.GetUserByUsernameOrEmail(input.Key, input.Key)
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, &utils2.AuthorizationError{
+		return nil, &utils.AuthorizationError{
 			Message: "invalid credentials",
 		}
 	}
@@ -163,7 +163,7 @@ func (s *UserService) Login(input *UserLoginInput) (*UserLoginResult, error) {
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Secret))
 	if err != nil {
 		if errors.Is(err, bcrypt.ErrHashTooShort) || errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			return nil, &utils2.AuthorizationError{
+			return nil, &utils.AuthorizationError{
 				Message: "invalid credentials",
 			}
 		}
@@ -171,7 +171,7 @@ func (s *UserService) Login(input *UserLoginInput) (*UserLoginResult, error) {
 
 	}
 
-	token, maxAge, err := utils2.GenerateJWTToken(user, utils2.GetJWTSecret())
+	token, maxAge, err := utils.GenerateJWTToken(user, utils.GetJWTSecret())
 	if err != nil {
 		return nil, fmt.Errorf("signing user token: %w", err)
 	}
