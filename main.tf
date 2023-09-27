@@ -13,37 +13,43 @@ provider "aws" {
 }
 
 locals {
-  resource_prefix         = "shared-expense-tracker"
-  frontend_s3_bucket_name = "${local.resource_prefix}-frontend"
-  common_tags = {
-    Name        = "Shared Expense Tracker"
-    Environment = "Dev"
-  }
+  web_s3_bucket_name         = "${var.resource_prefix}-web"
+  public_subnet_cidr_blocks  = ["10.0.1.0/24"]
+  public_subnet_count        = 1
+  private_subnet_cidr_blocks = ["10.0.101.0/24", "10.0.102.0/24"]
+  private_subnet_count       = 2
+
 }
 
-resource "aws_s3_bucket" "frontend" {
-  bucket = local.frontend_s3_bucket_name
 
-  tags = local.common_tags
+data "aws_availability_zones" "available" {
+  state = "available"
 }
 
-resource "aws_s3_bucket_public_access_block" "example" {
-  bucket = aws_s3_bucket.frontend.id
+resource "aws_s3_bucket" "web" {
+  bucket = local.web_s3_bucket_name
+
+  tags          = var.common_tags
+  force_destroy = true
 }
 
-resource "aws_s3_bucket_policy" "allow_public_read" {
-  bucket = aws_s3_bucket.frontend.id
-  policy = data.aws_iam_policy_document.s3_policy.json
+resource "aws_s3_bucket_public_access_block" "web_public_access_block" {
+  bucket = aws_s3_bucket.web.id
 }
 
-data "aws_iam_policy_document" "s3_policy" {
+resource "aws_s3_bucket_policy" "web_allow_public_read" {
+  bucket = aws_s3_bucket.web.id
+  policy = data.aws_iam_policy_document.web_s3_policy.json
+}
+
+data "aws_iam_policy_document" "web_s3_policy" {
   statement {
     actions = [
       "s3:GetObject",
     ]
 
     resources = [
-      "${aws_s3_bucket.frontend.arn}/*",
+      "${aws_s3_bucket.web.arn}/*",
     ]
 
     principals {
@@ -53,8 +59,8 @@ data "aws_iam_policy_document" "s3_policy" {
   }
 }
 
-resource "aws_s3_bucket_website_configuration" "frontend_website" {
-  bucket = aws_s3_bucket.frontend.id
+resource "aws_s3_bucket_website_configuration" "web_s3_website" {
+  bucket = aws_s3_bucket.web.id
 
   index_document {
     suffix = "index.html"
@@ -64,6 +70,158 @@ resource "aws_s3_bucket_website_configuration" "frontend_website" {
     key = "index.html"
   }
 }
+
+resource "aws_vpc" "vpc" {
+  cidr_block           = var.vpc_cidr_block
+  enable_dns_hostnames = true
+  tags                 = var.common_tags
+}
+
+resource "aws_internet_gateway" "internet_gateway" {
+  vpc_id = aws_vpc.vpc.id
+  tags   = var.common_tags
+}
+
+
+resource "aws_subnet" "public_subnet" {
+  count  = local.public_subnet_count
+  vpc_id = aws_vpc.vpc.id
+
+  cidr_block        = local.public_subnet_cidr_blocks[count.index]
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+  tags              = var.common_tags
+}
+
+
+resource "aws_subnet" "private_subnet" {
+  count             = local.private_subnet_count
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = local.private_subnet_cidr_blocks[count.index]
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+  tags              = var.common_tags
+}
+
+
+resource "aws_route_table" "public_route_table" {
+  vpc_id = aws_vpc.vpc.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.internet_gateway.id
+  }
+}
+
+resource "aws_route_table_association" "public_route_table_association" {
+  count          = local.public_subnet_count
+  route_table_id = aws_route_table.public_route_table.id
+  subnet_id      = aws_subnet.public_subnet[count.index].id
+}
+
+resource "aws_route_table" "private_route_table" {
+  vpc_id = aws_vpc.vpc.id
+}
+
+resource "aws_route_table_association" "private_route_table_association" {
+  count          = local.private_subnet_count
+  route_table_id = aws_route_table.private_route_table.id
+  subnet_id      = aws_subnet.private_subnet[count.index].id
+}
+
+resource "aws_security_group" "api_security_group" {
+  name        = "${var.resource_prefix}-api-sg"
+  description = "Security group for API"
+  vpc_id      = aws_vpc.vpc.id
+
+  ingress {
+    description = "Allow all traffic through HTTP"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "Allow ssh access from anywhere"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "Allow all traffic out"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = var.common_tags
+}
+
+resource "aws_key_pair" "key_pair" {
+  key_name   = "${var.resource_prefix}-key-pair"
+  public_key = file("./expense_tracker_kp.pub")
+}
+
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+}
+
+resource "aws_instance" "api" {
+  ami                         = data.aws_ami.amazon_linux.id
+  instance_type               = var.api_instance_type
+  subnet_id                   = aws_subnet.public_subnet[0].id
+  key_name                    = aws_key_pair.key_pair.key_name
+  vpc_security_group_ids      = [aws_security_group.api_security_group.id]
+  tags                        = var.common_tags
+  associate_public_ip_address = true
+}
+
+
+resource "aws_security_group" "database_security_group" {
+  name        = "${var.resource_prefix}-db-sg"
+  description = "Security group for database"
+  vpc_id      = aws_vpc.vpc.id
+  ingress {
+    description     = "Allow MYSQL traffic from API security group"
+    from_port       = "3306"
+    to_port         = "3306"
+    protocol        = "tcp"
+    security_groups = [aws_security_group.api_security_group.id]
+  }
+
+  tags = var.common_tags
+}
+
+
+resource "aws_db_subnet_group" "database_subnet_group" {
+  name       = "${var.resource_prefix}-db-subnet-group"
+  subnet_ids = [for subnset in aws_subnet.private_subnet : subnset.id]
+  tags       = var.common_tags
+}
+
+
+resource "aws_db_instance" "database" {
+  identifier = "${var.resource_prefix}-database"
+  allocated_storage      = 10
+  engine                 = "mysql"
+  engine_version         = "5.7"
+  instance_class         = "db.t2.micro"
+  username               = var.database_credentials.username
+  password               = var.database_credentials.password
+  db_name                = var.database_name
+  db_subnet_group_name   = aws_db_subnet_group.database_subnet_group.name
+  vpc_security_group_ids = [aws_security_group.database_security_group.id]
+  skip_final_snapshot = true
+}
+
+
 
 
 
