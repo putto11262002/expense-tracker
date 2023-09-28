@@ -17,8 +17,6 @@ function ProtectedRouteWrapper() {
         }
 
     }, [isLoggedIn, init, navigate])
-    
-    console.log(isLoggedIn, init)
 
     if (!init || !isLoggedIn){
         return <div className='w-full py-4 flex justify-center items-center'>

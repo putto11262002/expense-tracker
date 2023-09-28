@@ -6,7 +6,14 @@ import { IRegisterRequest, IUser } from "../interfaces/user";
 export const login = (payload: ILoginRequest) => {
   return api
     .post("/auth/login", payload)
-    .then((res) => res.data as ILoginResponse)
+    .then((res) => {
+        const data = res.data as ILoginResponse
+        // save token to user storage
+        localStorage.setItem("token", data.token)
+        // save token to api headers 
+        api.defaults.headers.common.Authorization = `Bearer ${data.token}`
+        return data
+    })
     .catch((err) => {
         let errMessage: string
         if(axios.isAxiosError<{error: string}>(err) && err.response){

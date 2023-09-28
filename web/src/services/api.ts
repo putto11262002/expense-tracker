@@ -5,6 +5,19 @@ const api = axios.create({
     withCredentials: true
 })
 
+api.interceptors.request.use(function(config) {
+    // if auth token if not present in the header try check local storage
+    if (!config.headers.Authorization){
+        const token = localStorage.getItem("token")
+        if(token){
+            config.headers.Authorization = `Bearer ${token}` 
+        }
+    }
+    return config
+}, function(error){
+    return Promise.reject(error)
+})
+
 
 
 export default api;
