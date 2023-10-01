@@ -51,3 +51,21 @@ variable "database_name" {
   type        = string
   default     = "shared_expense_tracker"
 }
+
+variable "jwt_secret" {
+  description = "JWT secret"
+  type        = string
+  default = "secret"
+  sensitive = true
+}
+
+variable "key_pair_public_key_path" {
+  description = "Path to your key pair public key"
+  type = string
+  sensitive = true
+}
+
+variable "api_docker_image" {
+  description = "Repository url of the api docker image"
+  type = string
+}

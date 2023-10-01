@@ -160,27 +160,39 @@ resource "aws_security_group" "api_security_group" {
 
 resource "aws_key_pair" "key_pair" {
   key_name   = "${var.resource_prefix}-key-pair"
-  public_key = file("./expense_tracker_kp.pub")
+  public_key = file(var.key_pair_public_key_path)
 }
 
-data "aws_ami" "amazon_linux" {
+data "aws_ami" "ubuntu-linux" {
   most_recent = true
-  owners      = ["amazon"]
-
+  owners      = ["099720109477"]
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+  }
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
   }
 }
 
 resource "aws_instance" "api" {
-  ami                         = data.aws_ami.amazon_linux.id
+  ami                         = data.aws_ami.ubuntu-linux.id
   instance_type               = var.api_instance_type
   subnet_id                   = aws_subnet.public_subnet[0].id
   key_name                    = aws_key_pair.key_pair.key_name
   vpc_security_group_ids      = [aws_security_group.api_security_group.id]
   tags                        = var.common_tags
-  associate_public_ip_address = true
+  associate_public_ip_address = false
+  user_data = templatefile("./api_init.tftpl", {
+    db_name = var.database_name
+    db_host = aws_db_instance.database.address
+    db_port = aws_db_instance.database.port
+    db_username = var.database_credentials.username
+    db_password = var.database_credentials.password
+    allowed_origins = "http://${aws_s3_bucket_website_configuration.web_s3_website.website_endpoint}"
+    docker_image = var.api_docker_image
+  })
 }
 
 
@@ -206,9 +218,15 @@ resource "aws_db_subnet_group" "database_subnet_group" {
   tags       = var.common_tags
 }
 
+resource "aws_eip" "api_elastic_ip" {
+  depends_on = [aws_internet_gateway.internet_gateway]
+  vpc = true
+  instance = aws_instance.api.id
+}
+
 
 resource "aws_db_instance" "database" {
-  identifier = "${var.resource_prefix}-database"
+  identifier             = "${var.resource_prefix}-database"
   allocated_storage      = 10
   engine                 = "mysql"
   engine_version         = "5.7"
@@ -218,12 +236,5 @@ resource "aws_db_instance" "database" {
   db_name                = var.database_name
   db_subnet_group_name   = aws_db_subnet_group.database_subnet_group.name
   vpc_security_group_ids = [aws_security_group.database_security_group.id]
-  skip_final_snapshot = true
+  skip_final_snapshot    = true
 }
-
-
-
-
-
-
-
