@@ -2,14 +2,14 @@ package handlers
 
 import (
 	"fmt"
-	// "log"
-	// "math"
+	"log"
+	"math"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	// "github.com/putto11262002/expense-tracker/api/configs"
+	"github.com/putto11262002/expense-tracker/api/configs"
 	"github.com/putto11262002/expense-tracker/api/domains"
 	"github.com/putto11262002/expense-tracker/api/services"
 	"github.com/putto11262002/expense-tracker/api/utils"
@@ -125,21 +125,21 @@ func (h *UserHandler) HandleLogin(ctx *gin.Context) {
 		return
 	}
 
-	// domain, err := configs.GetStringEnv("DOMAIN")
-	// if err != nil {
-	// 	log.Println("DOMAIN is not configured")
-	// }
+	domain, err := configs.GetStringEnv("DOMAIN")
+	if err != nil {
+		log.Println("DOMAIN is not configured")
+	}
 
 	// TODO - cookie should be secure
-	// var secure bool
-	// if configs.GetGoEnv() == "production" {
-	// 	secure = true
-	// } else {
-	// 	secure = false
-	// }
+	var secure bool
+	if configs.GetGoEnv() == "production" {
+		secure = true
+	} else {
+		secure = false
+	}
 
-	// ctx.SetSameSite(http.SameSiteNoneMode)
-	// ctx.SetCookie("token", result.Token, int(math.Ceil(result.MaxAge.Seconds())), "/", domain, false, true)
+	ctx.SetSameSite(http.SameSiteNoneMode)
+	ctx.SetCookie("token", result.Token, int(math.Ceil(result.MaxAge.Seconds())), "/", domain, secure, true)
 
 	ctx.JSON(200, NewLoginResponse(result))
 }
