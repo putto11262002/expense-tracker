@@ -22,7 +22,7 @@ func GetJWTSecret() string {
 }
 
 func GenerateJWTToken(user *domains.User, secret string) (string, time.Duration, error) {
-	maxAge := time.Minute * 5
+	maxAge := time.Hour * 24 * 7 // JWT token is valid for 7 days
 	claims := &jwt.StandardClaims{
 		Subject:   user.ID.String(),
 		ExpiresAt: time.Now().Add(maxAge).Unix(),
