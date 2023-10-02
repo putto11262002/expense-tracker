@@ -1,12 +1,5 @@
 #!/bin/bash
 
-# Update package list and upgrade installed packages
-sudo apt update -y
-sudo apt upgrade -y
-
-# Install Docker
-sudo apt install docker.io -y
-
 # Start and enable Docker
 sudo systemctl start docker
 sudo systemctl enable docker

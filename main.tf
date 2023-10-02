@@ -102,6 +102,20 @@ resource "aws_subnet" "private_subnet" {
 }
 
 
+resource "aws_eip" "ip" {
+  vpc      = true
+  tags = {
+    Name = "t4-elasticIP"
+  }
+}
+
+
+resource "aws_nat_gateway" "nat_gateway" {
+  allocation_id = "${aws_eip.ip.id}"
+  subnet_id     = "${aws_subnet.public_subnet[0].id}"
+}
+
+
 resource "aws_route_table" "public_route_table" {
   vpc_id = aws_vpc.vpc.id
   route {
@@ -118,6 +132,12 @@ resource "aws_route_table_association" "public_route_table_association" {
 
 resource "aws_route_table" "private_route_table" {
   vpc_id = aws_vpc.vpc.id
+
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = "${aws_nat_gateway.nat_gateway.id}"
+  }
 }
 
 resource "aws_route_table_association" "private_route_table_association" {
@@ -183,12 +203,14 @@ resource "aws_key_pair" "key_pair" {
   public_key = file(var.key_pair_public_key_path)
 }
 
-data "aws_ami" "ubuntu-linux" {
+data "aws_ami" "linux_docker" {
   most_recent = true
-  owners      = ["099720109477"]
+  owners      = ["102837901569"]
   filter {
     name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+
+    
+    values = ["aws-elasticbeanstalk-amzn-*.x86_64-docker-hvm-*"]
   }
   filter {
     name   = "virtualization-type"
@@ -198,7 +220,7 @@ data "aws_ami" "ubuntu-linux" {
 
 resource "aws_launch_configuration" "api_launch_template" {
   name_prefix     = "${var.resource_prefix}-api"
-  image_id        = data.aws_ami.ubuntu-linux.id
+  image_id        = data.aws_ami.linux_docker.id
   instance_type   = var.api_instance_type
   key_name                    = aws_key_pair.key_pair.key_name
   security_groups = [aws_security_group.api_security_group.id]
@@ -225,7 +247,7 @@ resource "aws_autoscaling_group" "api_auto_scaling_group" {
   max_size             = var.api_autoscale_settings.max
   desired_capacity     = var.api_autoscale_settings.desired
   launch_configuration = aws_launch_configuration.api_launch_template.name
-  vpc_zone_identifier  = [for subnset in aws_subnet.public_subnet : subnset.id]
+  vpc_zone_identifier  = [for subnset in aws_subnet.private_subnet : subnset.id]
   health_check_type    = "ELB"
   target_group_arns = [aws_lb_target_group.api_target_group.arn]
 }
