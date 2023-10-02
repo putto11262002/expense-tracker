@@ -179,7 +179,7 @@ There are serveral Terraform variables that have to be configured before privisi
 
 **Building API docker image**
 
-Provisioning the EC2 instance required the url to the docker image that will be deploy to it. To obtain the docker image URL, build the docker image push it to an container repostiory. 
+Provisioning the EC2 instance required the url to the docker image that will be deploy to it. To obtain the docker image URL, build the docker image with the target flatform linux/amd64 and push the built image to an container repostiory. 
 
 
 **Provision Infrastructure**
