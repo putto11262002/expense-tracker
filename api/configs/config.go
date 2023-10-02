@@ -8,6 +8,13 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type AppConfig struct {
+	Port int
+	DBConfig DBConfig
+	Env string
+	JwtSecret string
+}
+
 func LoadEnv(file string) error {
 	err := godotenv.Load(file)
 	if err != nil {
@@ -15,6 +22,7 @@ func LoadEnv(file string) error {
 	}
 	return nil
 }
+
 
 func GetStringEnv(key string) (string, error) {
 	val, ok := os.LookupEnv(key)

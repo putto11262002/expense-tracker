@@ -5,22 +5,18 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/putto11262002/expense-tracker/api/handlers"
 	"github.com/putto11262002/expense-tracker/api/middlewares"
-	"github.com/putto11262002/expense-tracker/api/repositories"
 	"github.com/putto11262002/expense-tracker/api/services"
 	"github.com/putto11262002/expense-tracker/api/utils"
-	"gorm.io/gorm"
+
 )
 
-func NewGroupRoutes(db *gorm.DB, r *gin.Engine) {
+func NewGroupRoutes(router *gin.RouterGroup, groupService services.IGroupService, userService services.IUserService) {
 
-	userRepository := repositories.NewUserRepository(db)
-	userService := services.NewUserService(userRepository)
-	groupRepository := repositories.NewGroupRepository(db)
-	groupService := services.NewGroupService(groupRepository)
+	
 
 	groupHandlers := handlers.NewGroupHandler(groupService, userService)
 
-	rg := r.Group("/")
+	rg := router.Group("/")
 
 	rg.Use(middlewares.JWTAuthMiddleware())
 

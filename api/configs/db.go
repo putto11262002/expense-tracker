@@ -3,7 +3,6 @@ package configs
 import (
 	"fmt"
 	"github.com/putto11262002/expense-tracker/api/domains"
-	"gorm.io/gorm/logger"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -57,11 +56,8 @@ func loadDBConfig() (*DBConfig, error) {
 	}, nil
 }
 
-func ConnectDB() (*gorm.DB, error) {
-	config, err := loadDBConfig()
-	if err != nil {
-		return nil, err
-	}
+func ConnectDB(config DBConfig) (*gorm.DB, error) {
+	
 	dns := fmt.Sprintf(`%s:%s@(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=UTC`,
 		config.Username,
 		config.Password,
@@ -71,9 +67,7 @@ func ConnectDB() (*gorm.DB, error) {
 
 	// dbLogger := logger.Default.LogMode(logger.Silent)
 
-	db, err := gorm.Open(mysql.Open(dns), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
-	})
+	db, err := gorm.Open(mysql.Open(dns), &gorm.Config{})
 
 	if err != nil {
 		return nil, fmt.Errorf("connecting to database: %w", err)
