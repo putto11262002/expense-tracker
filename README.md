@@ -199,7 +199,7 @@ To build the application be must supply the `VITE_API_BASE_URL`, which is the ur
 Run the following command to build the web application static assets
 ```
 cd web
-export VITE_API_BASE_URL=http://<api_endpoint>
+export VITE_API_BASE_URL=http://<api_endpoint>/api
 npm run build
 ```
 The build will produce the static assets in the `web/dist` folder 
