@@ -125,7 +125,8 @@ make docker-stop
 ## Deploy To AWS
 
 The application can be deploy to AWS using the provided terraform files. The terraform file will provision the infastrcuture on AWS Cloud as shown in the diagram below. 
-![AWS Clound](https://drive.google.com/uc?id=1hGKTOgbiWiYpLicOU_GydkjaYZQgk-Jf)
+
+![AWS Clound](https://drive.google.com/uc?id=1z1jN-WEle6dqZlIwI32CvfPUMccdXLNj)
 
 **Prerequisites**
 - The Terraform CLI (1.5.0+) installed.
