@@ -181,7 +181,7 @@ There are serveral Terraform variables that have to be configured before privisi
 
 **Building API docker image**
 
-Provisioning the EC2 instance required the url to the docker image that will be deploy to it. To obtain the docker image URL, build the docker image with the target flatform linux/amd64 and push the built image to a container repostiory. 
+Provisioning the EC2 instance required the URL to the docker image that will be deploy to it. To obtain the docker image URL, build the docker image with the target flatform linux/amd64 and push the built image to a container repostiory. 
 
 Build docker image and tag your image according to our repository url. 
 ```
@@ -205,11 +205,11 @@ To provision the infrastructure run the allowing command and type yes when promp
 ```
 terraform apply
 ```
-The command will return the web s3 bucket endpoint, `web_endpoint`, and the public DNS of the elastic IP associated with the EC2 instance, `api_endpoint`.
+The command will return the web S3 bucket endpoint, `web_endpoint`, and the public DNS of the API web service load balancer, `api_endpoint`.
 
 **Build And Upload the Web Application**
 
-To build the application be must supply the `VITE_API_BASE_URL`, which is the url that points to the web api service EC2 instance. 
+To build the application be must supply the `VITE_API_BASE_URL`, which is the url that points to the web api service. 
 
 Run the following command to build the web application static assets
 ```
@@ -219,7 +219,7 @@ npm run build
 ```
 The build will produce the static assets in the `web/dist` folder 
 
-To build upload the build asset to to s3 bucket run the following command (Assuming that you still in the `web` directory)
+To upload the build asset to the S3 bucket run the following command (Assuming that you still in the `web` directory)
 
 ```
 aws s3 cp ./dist/ s3://<bucket name> --recursive  
