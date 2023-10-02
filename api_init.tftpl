@@ -20,7 +20,7 @@ sudo systemctl enable docker
 
 sudo docker rm api &> /dev/null
 
-sudo docker run -e DB_HOST=${db_host} -e DB_PORT=${db_port} -e DB_USERNAME=${db_username} -e DB_PASSWORD=${db_password} -e DB_NAME=${db_name} -e PORT=3000  -e ALLOWED_ORIGINS=${allowed_origins} -p 3000:3000 -d --name api ${docker_image}
+sudo docker run --restart always -e DB_HOST=${db_host} -e DB_PORT=${db_port} -e DB_USERNAME=${db_username} -e DB_PASSWORD=${db_password} -e DB_NAME=${db_name} -e PORT=3000  -e ALLOWED_ORIGINS=${allowed_origins} -p 3000:3000 -d --name api ${docker_image}
 
 # Remove nginx default config file
 sudo rm /etc/nginx/sites-enabled/default &> /dev/null

@@ -7,7 +7,6 @@ variable "aws_region" {
 variable "resource_prefix" {
   description = "Prefix for all resources"
   type        = string
-  default     = "shared-expense-tracker"
 }
 
 variable "common_tags" {
