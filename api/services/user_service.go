@@ -15,11 +15,13 @@ import (
 
 type UserService struct {
 	repository repositories.IUserRepository
+	jwtSecret string
 }
 
-func NewUserService(repository repositories.IUserRepository) *UserService {
+func NewUserService(repository repositories.IUserRepository, jwtSecret string) *UserService {
 	return &UserService{
 		repository: repository,
+		jwtSecret: jwtSecret,
 	}
 }
 
@@ -171,7 +173,7 @@ func (s *UserService) Login(input *UserLoginInput) (*UserLoginResult, error) {
 
 	}
 
-	token, maxAge, err := utils.GenerateJWTToken(user, utils.GetJWTSecret())
+	token, maxAge, err := utils.GenerateJWTToken(user, s.jwtSecret)
 	if err != nil {
 		return nil, fmt.Errorf("signing user token: %w", err)
 	}

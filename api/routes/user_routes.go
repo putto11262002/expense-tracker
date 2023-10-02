@@ -5,18 +5,16 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/putto11262002/expense-tracker/api/handlers"
 	"github.com/putto11262002/expense-tracker/api/middlewares"
-	"github.com/putto11262002/expense-tracker/api/repositories"
 	"github.com/putto11262002/expense-tracker/api/services"
 	"github.com/putto11262002/expense-tracker/api/utils"
-	"gorm.io/gorm"
+
 )
 
-func NewUserRoutes(db *gorm.DB, r *gin.Engine) {
-	userRepository := repositories.NewUserRepository(db)
-	userService := services.NewUserService(userRepository)
+func NewUserRoutes(router *gin.RouterGroup, userService services.IUserService) {
+
 	userHandler := handlers.NewUserHandler(userService)
 
-	userRg := r.Group("/user")
+	userRg := router.Group("/user")
 
 	userRg.Use(middlewares.JWTAuthMiddleware())
 

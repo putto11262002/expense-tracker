@@ -1,14 +1,13 @@
 package main
 
 import (
-	"fmt"
+
 	"log"
 
-	"github.com/putto11262002/expense-tracker/api/configs"
-	"github.com/putto11262002/expense-tracker/api/middlewares"
-	"github.com/putto11262002/expense-tracker/api/routes"
 
-	"github.com/gin-gonic/gin"
+	"github.com/putto11262002/expense-tracker/api/configs"
+	"github.com/putto11262002/expense-tracker/api/server"
+
 )
 
 func main() {
@@ -20,33 +19,54 @@ func main() {
 		}
 	}
 
-	db, err := configs.ConnectDB()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := configs.AutoMigrate(db); err != nil {
-		log.Fatal(err)
-	}
-
-	// loading PORT from environment
 	port, err := configs.GetIntEnv("PORT")
 	if err != nil {
 		port = 3001
 	}
 
-	r := gin.Default()
-
-	r.Use(middlewares.GlobalErrorHandler())
-	r.Use(middlewares.CORSMiddleware())
-
-	routes.NewExpenseRoutes(r, db)
-	routes.NewUserRoutes(db, r)
-	routes.NewAuthRoutes(db, r)
-	routes.NewGroupRoutes(db, r)
-
-	err = r.Run(fmt.Sprintf(":%d", port))
+	username, err := configs.GetStringEnv("DB_USERNAME")
 	if err != nil {
-		log.Fatal(fmt.Errorf("starting server: %w", err))
+		log.Fatalf("loading database config: %v", err)
 	}
+
+	password, err := configs.GetStringEnv("DB_PASSWORD")
+	if err != nil {
+		log.Fatalf("loading database config: %v", err)
+	}
+
+	host, err := configs.GetStringEnv("DB_HOST")
+	if err != nil {
+		log.Fatalf("loading database config: %v", err)
+	}
+
+	dbPort, err := configs.GetIntEnv("DB_PORT")
+	if err != nil {
+		log.Fatalf("loading database config: %v", err)
+	}
+
+	database, err := configs.GetStringEnv("DB_NAME")
+	if err != nil {
+		log.Fatalf("loading database config: %v", err)
+	}
+
+	jwtSecret, err := configs.GetStringEnv("JWT_SECRET")
+	if err != nil {
+		jwtSecret = "secret"
+	}
+
+	config := configs.AppConfig{
+		Port: int(port),
+		DBConfig: configs.DBConfig{
+			Username: username,
+			Password: password,
+			Host: host,
+			Port: dbPort,
+			Database: database,
+		},
+		JwtSecret: jwtSecret,
+		Env: configs.GetGoEnv(),
+	}
+
+	app := server.NewApp(config)
+	app.Run()
 }
