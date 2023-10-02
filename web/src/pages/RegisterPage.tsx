@@ -108,7 +108,7 @@ function RegisterPage() {
             {isLoading && (
               <ArrowClockwise className="animate-spin mr-2 h-4 w-4" />
             )}{" "}
-            Login
+            Register
           </Button>
         </div>
 
