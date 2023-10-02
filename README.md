@@ -177,9 +177,11 @@ There are serveral Terraform variables that have to be configured before privisi
 
 - `api_docker_image*`: Represents the URL of the Docker image for the API web service. (Obtained from the next section)
 
+- `api_autoscale_settings`: Settings for the API EC2 instance auto scaling group. 
+
 **Building API docker image**
 
-Provisioning the EC2 instance required the url to the docker image that will be deploy to it. To obtain the docker image URL, build the docker image with the target flatform linux/amd64 and push the built image to an container repostiory. 
+Provisioning the EC2 instance required the url to the docker image that will be deploy to it. To obtain the docker image URL, build the docker image with the target flatform linux/amd64 and push the built image to a container repostiory. 
 
 
 **Provision Infrastructure**
