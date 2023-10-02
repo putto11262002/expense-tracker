@@ -125,8 +125,7 @@ make docker-stop
 ## Deploy To AWS
 
 The application can be deploy to AWS using the provided terraform files. The terraform file will provision the infastrcuture on AWS Cloud as shown in the diagram below. 
-
-![AWS Clound](https://drive.google.com/uc?id=1NgmhIliIc7xjafMDESZONwnZ-w9E2ue2)
+![AWS Clound](https://drive.google.com/uc?id=1hGKTOgbiWiYpLicOU_GydkjaYZQgk-Jf)
 
 **Prerequisites**
 - The Terraform CLI (1.5.0+) installed.
@@ -183,6 +182,21 @@ There are serveral Terraform variables that have to be configured before privisi
 
 Provisioning the EC2 instance required the url to the docker image that will be deploy to it. To obtain the docker image URL, build the docker image with the target flatform linux/amd64 and push the built image to a container repostiory. 
 
+Build docker image and tag your image according to our repository url. 
+```
+cd api
+docker build . --platform linux/amd64 -t <repository url>    
+```
+
+Login to repository via docker CLI. 
+```
+docker login -u <username>
+```
+
+Push the built image to the pository. 
+```
+docker push <repository url>
+```
 
 **Provision Infrastructure**
 
