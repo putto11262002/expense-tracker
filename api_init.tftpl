@@ -4,13 +4,6 @@
 sudo apt update -y
 sudo apt upgrade -y
 
-# Install Nginx
-sudo apt install nginx -y
-
-# Start and enable Nginx
-sudo systemctl start nginx
-sudo systemctl enable nginx
-
 # Install Docker
 sudo apt install docker.io -y
 
@@ -21,36 +14,3 @@ sudo systemctl enable docker
 sudo docker rm api &> /dev/null
 
 sudo docker run --restart always -e DB_HOST=${db_host} -e DB_PORT=${db_port} -e DB_USERNAME=${db_username} -e DB_PASSWORD=${db_password} -e DB_NAME=${db_name} -e PORT=3000  -e ALLOWED_ORIGINS=${allowed_origins} -p 3000:3000 -d --name api ${docker_image}
-
-# Remove nginx default config file
-sudo rm /etc/nginx/sites-enabled/default &> /dev/null
-
-# Configure Nginx as a reverse proxy
-cat <<EOF | sudo tee /etc/nginx/sites-available/reverse-proxy
-server {
-    listen 80;
-  # server_name example.com; # Change to your domain or IP address
-
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_cache_bypass \$http_upgrade;
-    }
-
-    # Additional Nginx configuration can be added here if needed
-}
-
-EOF
-
-# Create a symbolic link to enable the reverse proxy configuration
-sudo ln -s /etc/nginx/sites-available/reverse-proxy /etc/nginx/sites-enabled/
-
-# Test Nginx configuration
-sudo nginx -t
-
-# Reload Nginx to apply the configuration
-sudo systemctl reload nginx
-

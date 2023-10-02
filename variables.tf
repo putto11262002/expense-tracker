@@ -68,3 +68,15 @@ variable "api_docker_image" {
   description = "Repository url of the api docker image"
   type = string
 }
+
+
+variable "api_autoscale_settings" {
+  description = "Setting for api auto scaling group"
+  type = map(number)
+  default = {
+    "max" = 2
+    "min" = 1
+    desired = 1
+  }
+  
+}

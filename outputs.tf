@@ -3,5 +3,5 @@ output "web_endpoint" {
 }
 
 output "api_endpoint" {
-  value = aws_eip.api_elastic_ip.public_dns
+  value = aws_lb.api_load_balancer.dns_name
 }
