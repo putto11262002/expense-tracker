@@ -14,8 +14,8 @@ provider "aws" {
 
 locals {
   web_s3_bucket_name         = "${var.resource_prefix}-web"
-  public_subnet_cidr_blocks  = ["10.0.1.0/24"]
-  public_subnet_count        = 1
+  public_subnet_cidr_blocks  = ["10.0.1.0/24", "10.0.2.0/24"]
+  public_subnet_count        = 2
   private_subnet_cidr_blocks = ["10.0.101.0/24", "10.0.102.0/24"]
   private_subnet_count       = 2
 
@@ -133,10 +133,10 @@ resource "aws_security_group" "api_security_group" {
 
   ingress {
     description = "Allow all traffic through HTTP"
-    from_port   = 80
-    to_port     = 80
+    from_port   = 3000
+    to_port     = 3000
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    security_groups = [aws_security_group.api_lb_security_group.id]
   }
 
   ingress {
@@ -158,6 +158,26 @@ resource "aws_security_group" "api_security_group" {
   tags = var.common_tags
 }
 
+
+resource "aws_security_group" "api_lb_security_group" {
+  name = "${var.resource_prefix}-api-lb-sg"
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  vpc_id = aws_vpc.vpc.id
+}
+
 resource "aws_key_pair" "key_pair" {
   key_name   = "${var.resource_prefix}-key-pair"
   public_key = file(var.key_pair_public_key_path)
@@ -176,15 +196,14 @@ data "aws_ami" "ubuntu-linux" {
   }
 }
 
-resource "aws_instance" "api" {
-  ami                         = data.aws_ami.ubuntu-linux.id
-  instance_type               = var.api_instance_type
-  subnet_id                   = aws_subnet.public_subnet[0].id
+resource "aws_launch_configuration" "api_launch_template" {
+  name_prefix     = "${var.resource_prefix}-api"
+  image_id        = data.aws_ami.ubuntu-linux.id
+  instance_type   = var.api_instance_type
   key_name                    = aws_key_pair.key_pair.key_name
-  vpc_security_group_ids      = [aws_security_group.api_security_group.id]
-  tags                        = var.common_tags
-  associate_public_ip_address = false
-  user_data = templatefile("./api_init.tftpl", {
+  security_groups = [aws_security_group.api_security_group.id]
+   
+   user_data = templatefile("./api_init.tftpl", {
     db_name = var.database_name
     db_host = aws_db_instance.database.address
     db_port = aws_db_instance.database.port
@@ -193,7 +212,56 @@ resource "aws_instance" "api" {
     allowed_origins = "http://${aws_s3_bucket_website_configuration.web_s3_website.website_endpoint}"
     docker_image = var.api_docker_image
   })
+  
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
+
+resource "aws_autoscaling_group" "api_auto_scaling_group" {
+  name                 = "${var.resource_prefix}-api-auto-scaling-group"
+  min_size             = var.api_autoscale_settings.min
+  max_size             = var.api_autoscale_settings.max
+  desired_capacity     = var.api_autoscale_settings.desired
+  launch_configuration = aws_launch_configuration.api_launch_template.name
+  vpc_zone_identifier  = [for subnset in aws_subnet.public_subnet : subnset.id]
+  health_check_type    = "ELB"
+  target_group_arns = [aws_lb_target_group.api_target_group.arn]
+}
+
+resource "aws_lb" "api_load_balancer" {
+  name               = "${var.resource_prefix}-api-lb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.api_lb_security_group.id]
+  subnets            = [for subnet in aws_subnet.public_subnet: subnet.id]
+}
+
+resource "aws_lb_listener" "api_lb_listener" {
+  load_balancer_arn = aws_lb.api_load_balancer.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.api_target_group.arn
+  }
+}
+
+
+ resource "aws_lb_target_group" "api_target_group" {
+   name     = "${var.resource_prefix}-api-tg"
+   port     = 3000
+   protocol = "HTTP"
+   vpc_id   = aws_vpc.vpc.id
+   health_check {
+     enabled = true
+     port = 3000
+     protocol = "HTTP"
+     path = "/api/health-check"
+   }
+ }
 
 
 resource "aws_security_group" "database_security_group" {
@@ -216,12 +284,6 @@ resource "aws_db_subnet_group" "database_subnet_group" {
   name       = "${var.resource_prefix}-db-subnet-group"
   subnet_ids = [for subnset in aws_subnet.private_subnet : subnset.id]
   tags       = var.common_tags
-}
-
-resource "aws_eip" "api_elastic_ip" {
-  depends_on = [aws_internet_gateway.internet_gateway]
-  vpc = true
-  instance = aws_instance.api.id
 }
 
 
